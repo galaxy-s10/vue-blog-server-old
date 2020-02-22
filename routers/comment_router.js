@@ -102,10 +102,10 @@ router.get('/all', async function (req, res) {
 //发表留言
 router.post('/add', function (req, res) {
     console.log('发表留言')
-    var { article_id, from_userid, content, to_commentid, to_username, date } = req.body
+    var { article_id, from_userid, content, to_commentid, to_userid, date } = req.body
     console.log(req.body)
     var add = Comment.create({
-        article_id, from_userid, content, to_commentid, to_username, date
+        article_id, from_userid, content, to_commentid, to_userid, date
     })
     res.json(add)
 })

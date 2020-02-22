@@ -18,8 +18,8 @@ const Comment = sequelize.define(
         to_commentid: {
             type: Sequelize.INTEGER,
         },
-        to_username: {
-            type: Sequelize.STRING,
+        to_userid: {
+            type: Sequelize.INTEGER,
         },
         content: {
             type: Sequelize.STRING,
