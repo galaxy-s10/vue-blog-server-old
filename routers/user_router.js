@@ -32,7 +32,11 @@ router.get('/getinfo', async function (req, res) {
 
 router.get('/list', async function (req, res) {
     console.log('??????????')
+<<<<<<< HEAD
     var list = await User.findAll()
+=======
+    var list = await user.findAll()
+>>>>>>> 5904f6e5d092cd6a14584711ea57e9371a22feeb
     res.json({ list })
     // console.log('用户列表')
     // user.find((err, ress) => {
