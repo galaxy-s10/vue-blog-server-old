@@ -32,28 +32,8 @@ router.get('/getinfo', async function (req, res) {
 
 router.get('/list', async function (req, res) {
     console.log('??????????')
-<<<<<<< HEAD
     var list = await User.findAll()
-=======
-    var list = await user.findAll()
->>>>>>> 5904f6e5d092cd6a14584711ea57e9371a22feeb
     res.json({ list })
-    // console.log('用户列表')
-    // user.find((err, ress) => {
-    //     if (err) {
-    //         console.log('用户列表sql错了')
-    //         console.log(err)
-    //         res.status(200).send({
-    //             data: err
-    //         })
-    //     } else {
-    //         console.log('获取用户列表成功')
-    //         res.status(200).send({
-    //             code: 20000,
-    //             data: ress
-    //         })
-    //     }
-    // })
 })
 
 
