@@ -4,6 +4,7 @@ const Op = Sequelize.Op;
 var router = express.Router()
 var Article = require('../models/Article')
 var Comment = require('../models/Comment')
+var { autojwt } = require('./auto_jwt')
 
 //文章列表
 router.get('/', async function (req, res, next) {
@@ -119,14 +120,36 @@ router.post('/add', async function (req, res) {
 //删除文章
 router.get('/del', async function (req, res) {
     var { id } = req.query
-    // console.log(id)
-    // console.log(req.query)
-    var del = await Article.destroy({
-        where: {
-            id
+    if (!id) {
+        res.json({ code: 0, message: '请输入参数！' })
+        return
+    }
+    if (req.headers.authorization) {
+        var token = req.headers.authorization.split(" ")[1]
+        let secret = "token"
+        console.log('999999999999')
+        const bool = autojwt(token, secret)
+        if (bool.code) {
+            console.log(bool.decode)
+            var role = bool.decode.login_user.role
+            if (role == 'admin') {
+                var del = await Article.destroy({
+                    where: {
+                        id
+                    }
+                })
+                res.json({ code: 1, del })
+            } else {
+                res.json({ code: 0, message: '您不是管理员！' })
+            }
+
+        } else {
+            res.json({ code: 0, message: '登录失效,请重新登录！' })
         }
-    })
-    res.json(del)
+    } else {
+        console.log(req.headers)
+        res.json({ code: 0, message: '请登录！' })
+    }
 })
 
 //查找文章
@@ -167,17 +190,38 @@ router.get('/find', async function (req, res) {
 
 //修改文章
 router.post('/edit', async function (req, res) {
+    console.log('开始修改文章')
     var { id, title, type, img, content, date, click } = req.body
     console.log(id, title, type, img, content, date, click)
+    if (req.headers.authorization) {
+        var token = req.headers.authorization.split(" ")[1]
+        let secret = "token"
+        console.log('999999999999')
+        const bool = autojwt(token, secret)
+        if (bool.code) {
+            console.log(bool.decode)
+            var role = bool.decode.login_user.role
+            if (role == 'admin') {
+                var edit = await Article.update(
+                    {
+                        title, type, img, content, date, click
+                    },
+                    {
+                        where: { id }
+                    })
+                res.json({ code: 1, edit })
+            } else {
+                res.json({ code: 0, message: '您不是管理员！' })
+            }
+
+        } else {
+            res.json({ code: 0, message: '登录失效,请重新登录！' })
+        }
+    } else {
+        console.log(req.headers)
+        res.json({ code: 0, message: '请登录！' })
+    }
     // var content = content.replace(/'/g, "\\'");
-    var edit = await Article.update(
-        {
-            title, type, img, content, date, click
-        },
-        {
-            where: { id }
-        })
-    res.json({ edit })
 })
 
 module.exports = router

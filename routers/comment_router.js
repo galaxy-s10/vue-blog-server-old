@@ -5,6 +5,7 @@ const Op = Sequelize.Op;
 var Comment = require('../models/Comment')
 var User = require('../models/User')
 var Article = require('../models/Article')
+var { autojwt } = require('./auto_jwt')
 
 //留言板留言/单篇文章留言列表
 router.get('/', async function (req, res) {
@@ -102,12 +103,23 @@ router.get('/all', async function (req, res) {
 //发表留言
 router.post('/add', function (req, res) {
     console.log('发表留言')
-    var { article_id, from_userid, content, to_commentid, to_userid, date } = req.body
-    console.log(req.body)
-    var add = Comment.create({
-        article_id, from_userid, content, to_commentid, to_userid, date
-    })
-    res.json(add)
+    if (req.headers.authorization) {
+        var token = req.headers.authorization.split(" ")[1]
+        let secret = "token"
+        const bool = autojwt(token, secret)
+        if (bool.code) {
+            var { article_id, from_userid, content, to_commentid, to_userid, date } = req.body
+            var add = Comment.create({
+                article_id, from_userid, content, to_commentid, to_userid, date
+            })
+            res.json({ code: 1, add })
+        } else {
+            res.json({ code: 0, message: '登录失效,请重新登录！' })
+        }
+    } else {
+        console.log(req.headers)
+        res.json({ code: 0, message: '请登录！' })
+    }
 })
 //文章发表留言
 router.post('/addcomment', function (req, res) {

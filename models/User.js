@@ -1,4 +1,5 @@
 const Sequelize = require('sequelize')
+const MD5 = require('crypto-js/md5')
 const sequelize = require('../config/db')
 const User = sequelize.define(
     'User',
@@ -10,7 +11,7 @@ const User = sequelize.define(
             autoIncrement: true
         },
         username: Sequelize.STRING(20),
-        password: Sequelize.STRING(20),
+        password: Sequelize.STRING(50),
         role: {
             type: Sequelize.STRING(20),
             defaultValue: 'user'
@@ -25,6 +26,13 @@ const User = sequelize.define(
         },
     },
     {
+        hooks: {
+            afterValidate: function (User,options) {
+                if (User.changed('password')) {
+                    User.password = MD5(User.password).toString()
+                }
+            }
+        },
         // timestamps: false,
         freezeTableName: true
     }
