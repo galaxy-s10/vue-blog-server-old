@@ -107,14 +107,22 @@ router.get('/page', async function (req, res, next) {
 
 //发表文章
 router.post('/add', async function (req, res) {
-    var { title, type, img, content, date, click } = req.body
-    console.log(title, type, img, content, date, click)
-    // var content = content.replace(/'/g, "\\'");
-    var add = await Article.create({
-        title, type, img, content, date, click
-    })
-    console.log(add)
-    res.json({ add })
+    const bool = autojwt(req)
+    if (bool.code) {
+        const role = bool.decode.login_user.role
+        if (role == 'admin') {
+            var { title, type, img, content, date, click } = req.body
+            console.log(title, type, img, content, date, click)
+            var add = await Article.create({
+                title, type, img, content, date, click
+            })
+            res.status(200).json({ code: 1, add })
+        } else {
+            res.status(400).json({ code: 1, message: '权限不足！' })
+        }
+    } else {
+        res.status(400).json({ code: 0, message: '未授权或授权失效！' })
+    }
 })
 
 //删除文章
@@ -124,31 +132,21 @@ router.get('/del', async function (req, res) {
         res.json({ code: 0, message: '请输入参数！' })
         return
     }
-    if (req.headers.authorization) {
-        var token = req.headers.authorization.split(" ")[1]
-        let secret = "token"
-        console.log('999999999999')
-        const bool = autojwt(token, secret)
-        if (bool.code) {
-            console.log(bool.decode)
-            var role = bool.decode.login_user.role
-            if (role == 'admin') {
-                var del = await Article.destroy({
-                    where: {
-                        id
-                    }
-                })
-                res.json({ code: 1, del })
-            } else {
-                res.json({ code: 0, message: '您不是管理员！' })
-            }
-
+    const bool = autojwt(req)
+    if (bool.code) {
+        const role = bool.decode.login_user.role
+        if (role == 'admin') {
+            var del = await Article.destroy({
+                where: {
+                    id
+                }
+            })
+            res.status(200).json({ code: 1, del })
         } else {
-            res.json({ code: 0, message: '登录失效,请重新登录！' })
+            res.status(400).json({ code: 1, message: '权限不足！' })
         }
     } else {
-        console.log(req.headers)
-        res.json({ code: 0, message: '请登录！' })
+        res.status(400).json({ code: 0, message: '未授权或授权失效！' })
     }
 })
 
@@ -193,35 +191,24 @@ router.post('/edit', async function (req, res) {
     console.log('开始修改文章')
     var { id, title, type, img, content, date, click } = req.body
     console.log(id, title, type, img, content, date, click)
-    if (req.headers.authorization) {
-        var token = req.headers.authorization.split(" ")[1]
-        let secret = "token"
-        console.log('999999999999')
-        const bool = autojwt(token, secret)
-        if (bool.code) {
-            console.log(bool.decode)
-            var role = bool.decode.login_user.role
-            if (role == 'admin') {
-                var edit = await Article.update(
-                    {
-                        title, type, img, content, date, click
-                    },
-                    {
-                        where: { id }
-                    })
-                res.json({ code: 1, edit })
-            } else {
-                res.json({ code: 0, message: '您不是管理员！' })
-            }
-
+    const bool = autojwt(req)
+    if (bool.code) {
+        const role = bool.decode.login_user.role
+        if (role == 'admin') {
+            var edit = await Article.update(
+                {
+                    title, type, img, content, date, click
+                },
+                {
+                    where: { id }
+                })
+            res.status(200).json({ code: 1, edit })
         } else {
-            res.json({ code: 0, message: '登录失效,请重新登录！' })
+            res.status(400).json({ code: 1, message: '权限不足！' })
         }
     } else {
-        console.log(req.headers)
-        res.json({ code: 0, message: '请登录！' })
+        res.status(400).json({ code: 0, message: '未授权或授权失效！' })
     }
-    // var content = content.replace(/'/g, "\\'");
 })
 
 module.exports = router

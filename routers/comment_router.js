@@ -103,65 +103,44 @@ router.get('/all', async function (req, res) {
 //发表留言
 router.post('/add', function (req, res) {
     console.log('发表留言')
-    if (req.headers.authorization) {
-        var token = req.headers.authorization.split(" ")[1]
-        let secret = "token"
-        const bool = autojwt(token, secret)
-        if (bool.code) {
-            var { article_id, from_userid, content, to_commentid, to_userid, date } = req.body
-            var add = Comment.create({
-                article_id, from_userid, content, to_commentid, to_userid, date
-            })
-            res.json({ code: 1, add })
-        } else {
-            res.json({ code: 0, message: '登录失效,请重新登录！' })
-        }
+    const bool = autojwt(req)
+    if (bool.code) {
+        var { article_id, from_userid, content, to_commentid, to_userid, date } = req.body
+        console.log(article_id, from_userid, content, to_commentid, to_userid, date)
+        var add = Comment.create({
+            article_id, from_userid, content, to_commentid, to_userid, date
+        })
+        res.status(200).json({ code: 1, add })
     } else {
-        console.log(req.headers)
-        res.json({ code: 0, message: '请登录！' })
+        res.status(400).json({ code: 0, message: '未授权或授权失效！' })
     }
 })
 //文章发表留言
-router.post('/addcomment', function (req, res) {
-    console.log('文章发表留言')
-    console.log(req)
-    message.addcomment(req.body, function (err, ress) {
-        if (err) {
-            console.log('文章发表留言sql错了')
-            console.log(err)
-            res.status(200).send({
-                data: err
-            })
-        } else {
-            console.log('文章发表留言成功')
-            res.status(200).send({
-                code: 20000,
-                data: ress
-            })
-        }
+// router.post('/addcomment', function (req, res) {
+//     console.log('文章发表留言')
 
-    })
-})
+//     message.addcomment(req.body, function (err, ress) {
+//         if (err) {
+//             console.log('文章发表留言sql错了')
+//             console.log(err)
+//             res.status(200).json({
+//                 data: err
+//             })
+//         } else {
+//             console.log('文章发表留言成功')
+//             res.status(200).json({
+//                 code: 20000,
+//                 data: ress
+//             })
+//         }
+
+//     })
+// })
 
 //删除留言
 router.get('/del', function (req, res) {
     console.log('删除留言')
-    message.delete(req.query, function (err, ress) {
-        if (err) {
-            console.log('删除留言sql错了')
-            console.log(err)
-            res.status(200).send({
-                data: err
-            })
-        } else {
-            console.log('删除留言成功')
-            res.status(200).send({
-                code: 20000,
-                data: ress
-            })
-        }
-
-    })
+    res.status(200).json({ message: '暂时不支持删除留言哦' })
 })
 
 //查找留言
@@ -188,21 +167,7 @@ router.get('/find', function (req, res) {
 //修改留言
 router.post('/edit', function (req, res) {
     console.log('修改留言')
-    message.edit(req.body, function (err, ress) {
-        if (err) {
-            console.log('修改留言sql错了')
-            console.log(err)
-            res.status(200).send({
-                data: err
-            })
-        } else {
-            console.log('修改留言成功')
-            res.status(200).send({
-                code: 20000,
-                data: ress
-            })
-        }
-    })
+    res.status(200).json({ message: '暂时不支持修改留言哦' })
 
 })
 
