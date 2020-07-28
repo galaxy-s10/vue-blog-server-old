@@ -1,11 +1,43 @@
 var express = require('express')
 var router = express.Router()
+const Joi = require('@hapi/joi')
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op;
 var Comment = require('../models/Comment')
 var User = require('../models/User')
 var Article = require('../models/Article')
 var { autojwt } = require('./auto_jwt')
+
+// 判断权限
+router.use((req, res, next) => {
+    const validateList = ['/add']
+    console.log(validateList.indexOf(req.path.toLowerCase()));
+    if (validateList.indexOf(req.path.toLowerCase()) != -1) {
+        const jwt_res = autojwt(req)
+        console.log('判断权限');
+        console.log(jwt_res);
+        jwt_res.code == 401 ? next(jwt_res) : next()
+        // 不加return会继续执行if语句外面的代码
+        return
+    } else {
+        next()
+    }
+    // console.log('没想到吧，我还会执行');
+})
+
+// 判断参数
+const validateComment = Joi.object({
+    id: [
+        null,
+        Joi.number()
+    ],
+    article_id: Joi.number().required(),
+    from_userid: Joi.number().required(),
+    content: Joi.string().min(3).max(200).required(),
+    to_commentid: Joi.number().required(),
+    to_userid: Joi.number().required(),
+}).xor('id')
+
 
 //留言板留言/单篇文章留言列表
 router.get('/', async function (req, res) {
@@ -18,13 +50,14 @@ router.get('/', async function (req, res) {
             as: "from_user",
         },
         {
-            attributes: ['username', 'avatar', 'role'],
             model: User,
+            attributes: ['username', 'avatar', 'role'],
             as: "to_user",
         }
         ],
         order: [['createdAt', 'DESC']],
     })
+    // res.json({ rows, count })
     var lists = []
     // 遍历原本的数据
     for (var i = 0; i < rows.length; i++) {
@@ -46,6 +79,7 @@ router.get('/', async function (req, res) {
         }
     }
     res.json({ lists, count })
+
 })
 
 //所有文章留言列表
@@ -100,74 +134,22 @@ router.get('/all', async function (req, res) {
 })
 
 
-//发表留言
-router.post('/add', function (req, res) {
+// 发表留言
+router.post('/add', async function (req, res, next) {
     console.log('发表留言')
-    const bool = autojwt(req)
-    if (bool.code) {
-        var { article_id, from_userid, content, to_commentid, to_userid, date } = req.body
-        console.log(article_id, from_userid, content, to_commentid, to_userid, date)
-        var add = Comment.create({
-            article_id, from_userid, content, to_commentid, to_userid, date
-        })
-        res.status(200).json({ code: 1, add })
-    } else {
-        res.status(400).json({ code: 0, message: '未授权或授权失效！' })
+    try {
+        await validateComment.validateAsync(req.body, { convert: false })
+    } catch (err) {
+        next({ code: 400, message: err.message })
+        return
     }
-})
-//文章发表留言
-// router.post('/addcomment', function (req, res) {
-//     console.log('文章发表留言')
-
-//     message.addcomment(req.body, function (err, ress) {
-//         if (err) {
-//             console.log('文章发表留言sql错了')
-//             console.log(err)
-//             res.status(200).json({
-//                 data: err
-//             })
-//         } else {
-//             console.log('文章发表留言成功')
-//             res.status(200).json({
-//                 code: 20000,
-//                 data: ress
-//             })
-//         }
-
-//     })
-// })
-
-//删除留言
-router.get('/del', function (req, res) {
-    console.log('删除留言')
-    res.status(200).json({ message: '暂时不支持删除留言哦' })
-})
-
-//查找留言
-router.get('/find', function (req, res) {
-    console.log('查找留言')
-    message.findone(req.query, function (err, ress) {
-        if (err) {
-            console.log('查找留言sql错了')
-            console.log(err)
-            res.status(200).send({
-                data: err
-            })
-        } else {
-            console.log('查找留言成功')
-            res.status(200).send({
-                code: 20000,
-                data: ress
-            })
-        }
-
+    var { article_id, from_userid, content, to_commentid, to_userid } = req.body
+    console.log(article_id, from_userid, content, to_commentid, to_userid)
+    var add = await Comment.create({
+        article_id, from_userid, content, to_commentid, to_userid
     })
-})
+    res.status(200).json({ code: 1, add })
 
-//修改留言
-router.post('/edit', function (req, res) {
-    console.log('修改留言')
-    res.status(200).json({ message: '暂时不支持修改留言哦' })
 
 })
 

@@ -1,7 +1,8 @@
 const Sequelize = require('sequelize')
 const sequelize = require('../config/db')
 const Article = sequelize.define(
-    'Article',
+    // 这将控制自动生成的foreignKey和关联命名的名称
+    'article',
     {
         id: {
             type: Sequelize.INTEGER,
@@ -31,17 +32,12 @@ const Article = sequelize.define(
         },
     },
     {
-        // timestamps: false,
-        freezeTableName: true
+        freezeTableName: true,
     }
 )
-// Article.sync({ force: true }).then((res) => {
-//     console.log('// 如果表存在 会删除表重新建表')
+// .sync({ force: true })会删除并重建表
+// Articlea.sync({ force: true }).then((res) => {
+//     console.log('如果表存在 会删除表重新建表')
 //     console.log(res)
-//     // return Article.create({
-//     //     id: 1,
-//     //     username: 'John',
-//     //     password: 'Hancock'
-//     // });
 // })
 module.exports = Article

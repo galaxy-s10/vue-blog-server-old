@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize')
 const sequelize = require('../config/db')
-const Comment = sequelize.define(
-    'comment',
+const Article_tag = sequelize.define(
+    'article_tag',
     {
         id: {
             type: Sequelize.INTEGER,
@@ -12,22 +12,12 @@ const Comment = sequelize.define(
         article_id: {
             type: Sequelize.INTEGER,
         },
-        from_userid: {
+        tag_id: {
             type: Sequelize.INTEGER,
         },
-        to_commentid: {
-            type: Sequelize.INTEGER,
-        },
-        to_userid: {
-            type: Sequelize.INTEGER,
-            allowNull: false
-        },
-        content: {
-            type: Sequelize.STRING,
-        }
     },
     {
         freezeTableName: true
     }
 )
-module.exports = Comment
+module.exports = Article_tag

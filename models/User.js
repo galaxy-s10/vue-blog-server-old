@@ -2,7 +2,7 @@ const Sequelize = require('sequelize')
 const MD5 = require('crypto-js/md5')
 const sequelize = require('../config/db')
 const User = sequelize.define(
-    'User',
+    'user',
     {
         id: {
             type: Sequelize.INTEGER,
