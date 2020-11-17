@@ -29,6 +29,9 @@ var qiniu_router = require('./routers/qiniu_router')
 var comment_router = require('./routers/comment_router')
 var tag_router = require('./routers/tag_router')
 var link_router = require('./routers/link_router')
+var role_router = require('./routers/role_router')
+var auth_router = require('./routers/auth_router')
+var role_auth_router = require('./routers/role_auth_router')
 
 app.use('/', (req, res, next) => {
   console.log('==========开始匹配==========');
@@ -44,6 +47,9 @@ app.use('/qiniu', qiniu_router)
 app.use('/comment', comment_router)
 app.use('/tag', tag_router)
 app.use('/link', link_router)
+app.use('/role', role_router)
+app.use('/auth', auth_router)
+app.use('/roleauth', role_auth_router)
 
 // 统一处理报错
 app.use('/', (err, req, res, next) => {
