@@ -10,8 +10,14 @@ const Auth = sequelize.define(
             autoIncrement: true
         },
         auth_name: {
-            type: Sequelize.STRING(20),
+            type: Sequelize.STRING(50),
         },
+        auth_description: {
+            type: Sequelize.STRING(50),
+        },
+        p_id: {
+            type: Sequelize.INTEGER,
+        }
     },
     {
         freezeTableName: true

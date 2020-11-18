@@ -12,6 +12,12 @@ const Role = sequelize.define(
         role_name: {
             type: Sequelize.STRING(50),
         },
+        role_description: {
+            type: Sequelize.STRING(50),
+        },
+        p_id: {
+            type: Sequelize.INTEGER,
+        },
     },
     {
         freezeTableName: true

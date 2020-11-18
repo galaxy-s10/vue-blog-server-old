@@ -9,26 +9,26 @@ var User_role = require('../models/User_role')
 var Role_auth = require('../models/Role_auth')
 
 // 判断权限
-// router.use('/', (req, res, next) => {
-//     console.log('判断权限');
-//     const validateList = ['/add', '/del', '/edit']
-//     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-//         const jwt_res = autojwt(req)
-//         if (jwt_res.code == 401) {
-//             console.log(jwt_res.message);
-//             next(jwt_res)
-//         } else {
-//             console.log('合法token');
-//             next()
-//         }
-//         // 不加return会继续执行if语句外面的代码
-//         return
-//     } else {
-//         next()
-//         return
-//     }
-//     // console.log('没想到吧，我还会执行');
-// })
+router.use('/', async (req, res, next) => {
+    console.log('判断权限');
+    const validateList = ['/list']
+    if (validateList.indexOf(req.path.toLowerCase()) != -1) {
+        const jwt_res = await autojwt(req)
+        if (jwt_res.code == 401) {
+            console.log(jwt_res.message);
+            next(jwt_res)
+        } else {
+            console.log('合法token');
+            next()
+        }
+        // 不加return会继续执行if语句外面的代码
+        return
+    } else {
+        next()
+        return
+    }
+    // console.log('没想到吧，我还会执行');
+})
 
 // 判断参数
 const validateLink = Joi.object({

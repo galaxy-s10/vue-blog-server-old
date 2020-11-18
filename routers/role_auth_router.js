@@ -96,6 +96,7 @@ router.get('/getUserRole', async function (req, res) {
 // 获取某个用户的角色以及权限
 router.get('/getUserAuth', async function (req, res) {
     let { id } = req.query
+    console.log(id)
     var { rows, count } = await User_role.findAndCountAll({
         where: { id },
         include: [

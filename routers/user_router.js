@@ -7,11 +7,11 @@ const MD5 = require('crypto-js/md5')
 const { autojwt } = require('./auto_jwt');
 
 // 判断权限
-router.use((req, res, next) => {
+router.use(async (req, res, next) => {
     const validateList = ['/getuserinfo', '/list', '/del', '/edit']
     console.log(validateList.indexOf(req.path.toLowerCase()));
     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-        const jwt_res = autojwt(req)
+        const jwt_res = await autojwt(req)
         console.log('判断权限');
         console.log(jwt_res);
         jwt_res.code == 401 ? next(jwt_res) : next()
@@ -103,6 +103,9 @@ router.post('/login', async function (req, res, next) {
                 username, password
             }
         })
+        console.log('user')
+        // console.log(user)
+        // console.log(user.id)
         if (user) {
             let created = Math.floor(Date.now() / 1000);
             let secret = "token"
@@ -111,9 +114,18 @@ router.post('/login', async function (req, res, next) {
                 exp: created + 60 * 60 * 24, //24小时后过期
                 // exp: created + 60 * 60, //一小时后过期
             }, secret)
-            res.status(200).json({ token })
+            let { id } = user
+            await User.update(
+                {
+                    token
+                },
+                {
+                    where: { id }
+                }
+            )
+            res.status(200).json({ token, message: '登录成功！' })
         } else {
-            res.status(401).json({ token: null })
+            res.status(401).json({ token: null, message: '账号或密码错误！' })
         }
     } else {
         next({ code: 400, message: '参数错误' })
@@ -122,8 +134,7 @@ router.post('/login', async function (req, res, next) {
 
 // 获取用户信息
 router.get('/getuserinfo', async function (req, res) {
-    const bool = autojwt(req)
-    console.log(bool);
+    const bool = await autojwt(req)
     res.status(200).json({ code: 1, userinfo: bool.user })
 })
 

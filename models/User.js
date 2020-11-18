@@ -24,10 +24,13 @@ const User = sequelize.define(
             type: Sequelize.STRING(20),
             defaultValue: '无'
         },
+        token: {
+            type: Sequelize.STRING,
+        },
     },
     {
         hooks: {
-            afterValidate: function (User,options) {
+            afterValidate: function (User, options) {
                 if (User.changed('password')) {
                     User.password = MD5(User.password).toString()
                 }
