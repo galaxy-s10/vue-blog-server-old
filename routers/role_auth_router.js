@@ -59,10 +59,17 @@ router.get('/roleAuthList', async function (req, res) {
 
 // 获取用户角色列表
 router.get('/userRoleList', async function (req, res) {
-    var { rows, count } = await User_role.findAndCountAll({
+    var { rows, count } = await User.findAndCountAll({
         include: [
             {
-                model: User,
+                // attributes: { exclude: ['password', 'token'] },
+                model: Role,
+                // include: [
+                //     {
+                //         model: Role,
+                //         through: { attributes: [] },
+                //     }
+                // ]
             },
 
         ],
@@ -71,6 +78,27 @@ router.get('/userRoleList', async function (req, res) {
     })
     res.json({ count, rows })
 })
+// 获取用户角色列表
+// router.get('/userRoleList', async function (req, res) {
+//     var { rows, count } = await User_role.findAndCountAll({
+//         include: [
+//             {
+//                 attributes: { exclude: ['password', 'token'] },
+//                 model: User,
+//                 include: [
+//                     {
+//                         model: Role,
+//                         through: { attributes: [] },
+//                     }
+//                 ]
+//             },
+
+//         ],
+//         // 去重
+//         distinct: true,
+//     })
+//     res.json({ count, rows })
+// })
 
 // 获取某个用户的角色
 router.get('/getUserRole', async function (req, res) {
@@ -101,14 +129,22 @@ router.get('/getUserAuth', async function (req, res) {
         where: { id },
         include: [
             {
+                attributes: { exclude: ['password', 'token'] },
                 model: User,
-            },
-            {
-                model: Role,
                 include: [
-                    { model: Auth }
+                    {
+                        through: { attributes: [] },
+                        model: Role,
+                        include: [
+                            {
+                                through: { attributes: [] },
+                                model: Auth,
+                            }
+                        ]
+
+                    }
                 ]
-            }
+            },
         ],
         // attributes: [],
         // 去重

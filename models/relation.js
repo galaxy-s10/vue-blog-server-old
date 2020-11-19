@@ -37,6 +37,9 @@ Role_auth.belongsTo(Role, { foreignKey: 'role_id', targetKey: 'id' })
 
 
 
+Role.belongsToMany(User, { through: User_role, foreignKey: 'role_id', otherKey: 'user_id' })
+User.belongsToMany(Role, { through: User_role, foreignKey: 'user_id', otherKey: 'role_id' })
+
 Role.belongsToMany(Auth, { through: Role_auth, foreignKey: 'role_id', otherKey: 'auth_id' })
 Auth.belongsToMany(Role, { through: Role_auth, foreignKey: 'auth_id', otherKey: 'role_id' })
 

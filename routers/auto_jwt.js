@@ -11,19 +11,21 @@ function autojwt(req) {
         console.log('decode')
         console.log(decode)
         if (err) {
+            console.log('非法token')
+            console.log(err)
             // 判断非法/过期token
             return { code: 401, message: err.message }
         } else {
-
             const res = await User.findOne({
                 attributes: ['token'],
                 where: {
-                    id: 1
+                    id: decode.user.id
                 }
             })
             console.log('res')
             console.log(decode.user.id)
             console.log(res.token)
+            console.log(token)
             if (res.token != token) {
                 return { code: 401, message: '登录信息过期！' }
             }

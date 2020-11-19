@@ -8,7 +8,8 @@ const { autojwt } = require('./auto_jwt');
 
 // 判断权限
 router.use(async (req, res, next) => {
-    const validateList = ['/getuserinfo', '/list', '/del', '/edit']
+    // const validateList = ['/getuserinfo', '/list', '/del', '/edit']
+    const validateList = ['/list', '/del', '/edit']
     console.log(validateList.indexOf(req.path.toLowerCase()));
     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
         const jwt_res = await autojwt(req)
@@ -115,7 +116,9 @@ router.post('/login', async function (req, res, next) {
                 // exp: created + 60 * 60, //一小时后过期
             }, secret)
             let { id } = user
-            await User.update(
+            console.log('用户id')
+            console.log(id)
+            let ppp = await User.update(
                 {
                     token
                 },
@@ -123,6 +126,8 @@ router.post('/login', async function (req, res, next) {
                     where: { id }
                 }
             )
+            console.log('ppp')
+            console.log(ppp)
             res.status(200).json({ token, message: '登录成功！' })
         } else {
             res.status(401).json({ token: null, message: '账号或密码错误！' })
@@ -135,6 +140,9 @@ router.post('/login', async function (req, res, next) {
 // 获取用户信息
 router.get('/getuserinfo', async function (req, res) {
     const bool = await autojwt(req)
+    console.log('bool')
+    console.log(bool)
+    console.log(bool.user)
     res.status(200).json({ code: 1, userinfo: bool.user })
 })
 
