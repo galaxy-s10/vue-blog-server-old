@@ -96,18 +96,20 @@ router.post('/add', async function (req, res, next) {
 // 登录
 router.post('/login', async function (req, res, next) {
     var { username, password } = req.body
+    console.log(username, password)
     if (username && password) {
         var password = MD5(password).toString()
         const user = await User.findOne({
-            attributes: ['id', 'username', 'role', 'avatar', 'title'],
+            attributes: { exclude: ['password', 'token'] },
             where: {
                 username, password
             }
         })
-        console.log('user')
-        // console.log(user)
+        console.log('useruseruser')
+        console.log(user)
         // console.log(user.id)
         if (user) {
+            console.log('密码对了')
             let created = Math.floor(Date.now() / 1000);
             let secret = "token"
             const token = jwt.sign({
@@ -130,6 +132,7 @@ router.post('/login', async function (req, res, next) {
             console.log(ppp)
             res.status(200).json({ token, message: '登录成功！' })
         } else {
+            console.log('密码错了')
             res.status(401).json({ token: null, message: '账号或密码错误！' })
         }
     } else {
@@ -143,7 +146,7 @@ router.get('/getuserinfo', async function (req, res) {
     console.log('bool')
     console.log(bool)
     console.log(bool.user)
-    res.status(200).json({ code: 1, userinfo: bool.user })
+    res.status(200).json({ code: 200, userinfo: bool.user })
 })
 
 // 获取用户列表

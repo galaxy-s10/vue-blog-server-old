@@ -16,6 +16,9 @@ const User = sequelize.define(
             type: Sequelize.STRING(20),
             defaultValue: 'user'
         },
+        status: {
+            type: Sequelize.INTEGER,
+        },
         avatar: {
             type: Sequelize.STRING(100),
             defaultValue: null

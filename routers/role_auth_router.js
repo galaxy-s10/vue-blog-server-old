@@ -42,7 +42,7 @@ const validateLink = Joi.object({
     url: Joi.string().min(10).max(50).required(),
 }).xor('id')
 
-// 获取角色拥有的权限
+// 获取所有角色以及角色拥有的权限
 router.get('/roleAuthList', async function (req, res) {
     var { rows, count } = await Role.findAndCountAll({
         include: [
@@ -54,7 +54,26 @@ router.get('/roleAuthList', async function (req, res) {
         // 去重
         distinct: true,
     })
-    res.json({ count, rows })
+    res.status(200).json({ count, rows })
+})
+
+// 获取某个角色拥有的权限
+router.get('/oneRoleAuth', async function (req, res) {
+    let { id } = req.query
+    var { rows, count } = await Role_auth.findAndCountAll({
+        include: [
+            {
+                model: Auth,
+            },
+        ],
+        where: { role_id: id },
+        // 去重
+        distinct: true,
+    })
+    console.log('获取某个角色拥有的权限')
+    console.log('333333333333')
+    console.log(count, rows)
+    res.status(200).json({ count, rows })
 })
 
 // 获取用户角色列表
@@ -76,35 +95,14 @@ router.get('/userRoleList', async function (req, res) {
         // 去重
         distinct: true,
     })
-    res.json({ count, rows })
+    res.status(200).json({ count, rows })
 })
-// 获取用户角色列表
-// router.get('/userRoleList', async function (req, res) {
-//     var { rows, count } = await User_role.findAndCountAll({
-//         include: [
-//             {
-//                 attributes: { exclude: ['password', 'token'] },
-//                 model: User,
-//                 include: [
-//                     {
-//                         model: Role,
-//                         through: { attributes: [] },
-//                     }
-//                 ]
-//             },
-
-//         ],
-//         // 去重
-//         distinct: true,
-//     })
-//     res.json({ count, rows })
-// })
 
 // 获取某个用户的角色
 router.get('/getUserRole', async function (req, res) {
     let { id } = req.query
     var { rows, count } = await User_role.findAndCountAll({
-        where: { user_id:id },
+        where: { user_id: id },
         include: [
             {
                 model: User,
@@ -117,16 +115,17 @@ router.get('/getUserRole', async function (req, res) {
         // 去重
         distinct: true,
     })
-    res.json({ count, rows })
+    res.status(200).json({ count, rows })
 })
 
 
 // 获取某个用户的角色以及权限
 router.get('/getUserAuth', async function (req, res) {
     let { id } = req.query
+    console.log('获取某个用户的角色以及权限')
     console.log(id)
     var { rows, count } = await User_role.findAndCountAll({
-        where: { user_id:id },
+        where: { user_id: id },
         include: [
             {
                 attributes: { exclude: ['password', 'token'] },
