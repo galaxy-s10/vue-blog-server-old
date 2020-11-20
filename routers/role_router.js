@@ -47,6 +47,18 @@ router.get('/list', async function (req, res) {
     var { rows, count } = await Role.findAndCountAll()
     res.json({ count, rows })
 })
+// 更新用户角色
+router.put('/editRole', async function (req, res) {
+    let { id, roles } = req.body
+    console.log(id,roles);
+    let update_roles = await Role.findAll({ where: { id: roles } })
+    let find_user = await User.findByPk(id)
+    let result = await find_user.setRoles(update_roles)
+
+    res.status(200).json({ code: 1, result })
+    // res.json(1)
+    // res.json({ count, rows })
+})
 
 
 

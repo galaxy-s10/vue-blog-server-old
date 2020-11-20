@@ -104,7 +104,7 @@ router.get('/userRoleList', async function (req, res) {
 router.get('/getUserRole', async function (req, res) {
     let { id } = req.query
     var { rows, count } = await User_role.findAndCountAll({
-        where: { id },
+        where: { user_id:id },
         include: [
             {
                 model: User,
@@ -126,7 +126,7 @@ router.get('/getUserAuth', async function (req, res) {
     let { id } = req.query
     console.log(id)
     var { rows, count } = await User_role.findAndCountAll({
-        where: { id },
+        where: { user_id:id },
         include: [
             {
                 attributes: { exclude: ['password', 'token'] },
