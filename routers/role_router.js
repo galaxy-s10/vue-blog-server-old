@@ -48,18 +48,20 @@ router.get('/list', async function (req, res) {
     res.json({ count, rows })
 })
 
-// 获取某个用户的权限
-router.get('/getAuth', async function (req, res) {
-    let { id } = req.query
-    let result = await Role.findAndCountAll({
-        include: [
-            {
-                mode: Auth
-            }
-        ]
-    })
-    res.status(200).json({ code: 200, result })
-})
+// // 获取某个角色的权限
+// router.get('/getAuth', async function (req, res) {
+//     let { id } = req.query
+//     let result = await Role.findAndCountAll({
+//         include: [
+//             {
+//                 mode: Auth
+//             },
+
+//         ],
+//         where: { id }
+//     })
+//     res.status(200).json({ code: 200, result })
+// })
 
 // 更新某个用户的角色
 router.put('/editUserRole', async function (req, res) {

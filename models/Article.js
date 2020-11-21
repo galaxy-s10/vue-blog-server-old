@@ -16,6 +16,12 @@ const Article = sequelize.define(
         type: {
             type: Sequelize.STRING(20),
         },
+        status: {
+            type: Sequelize.INTEGER,
+        },
+        isComment: {
+            type: Sequelize.INTEGER,
+        },
         img: {
             type: Sequelize.STRING(100),
             defaultValue: '无'

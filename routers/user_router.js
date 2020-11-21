@@ -109,7 +109,11 @@ router.post('/login', async function (req, res, next) {
         console.log(user)
         // console.log(user.id)
         if (user) {
-            console.log('密码对了')
+            if (user.status == 2) {
+                console.log('禁用');
+                res.status(401).json({ code: 401, token: null, message: '该账号已被禁用！' })
+                return
+            }
             let created = Math.floor(Date.now() / 1000);
             let secret = "token"
             const token = jwt.sign({
@@ -118,9 +122,7 @@ router.post('/login', async function (req, res, next) {
                 // exp: created + 60 * 60, //一小时后过期
             }, secret)
             let { id } = user
-            console.log('用户id')
-            console.log(id)
-            let ppp = await User.update(
+            await User.update(
                 {
                     token
                 },
@@ -128,12 +130,10 @@ router.post('/login', async function (req, res, next) {
                     where: { id }
                 }
             )
-            console.log('ppp')
-            console.log(ppp)
             res.status(200).json({ token, message: '登录成功！' })
         } else {
             console.log('密码错了')
-            res.status(401).json({ token: null, message: '账号或密码错误！' })
+            res.status(401).json({ code: 401, token: null, message: '账号或密码错误！' })
         }
     } else {
         next({ code: 400, message: '参数错误' })
@@ -141,7 +141,7 @@ router.post('/login', async function (req, res, next) {
 })
 
 // 获取用户信息
-router.get('/getuserinfo', async function (req, res) {
+router.get('/getUserInfo', async function (req, res) {
     const bool = await autojwt(req)
     console.log('bool')
     console.log(bool)
@@ -177,6 +177,33 @@ router.get('/find', async function (req, res, next) {
         }
     })
     res.status(200).json(list)
+})
+
+
+// 修改用户状态
+router.put('/editStatus', async function (req, res, next) {
+    const { id, status } = req.body
+    // try {
+    //     await validateUser.validateAsync(req.body, { convert: false, allowUnknown: true })
+    // } catch (err) {
+    //     next({ code: 400, message: err.message })
+    //     return
+    // }
+    // const jwt_res = await autojwt(req)
+    // console.log(jwt_res);
+    // if (jwt_res.user.role == 'admin') {
+    const result = await User.update(
+        {
+            status
+        },
+        {
+            where: { id }
+        }
+    )
+    res.status(200).json({ code: 200, result, message: "操作成功！" })
+    // } else {
+    //     next(jwt_res)
+    // }
 })
 
 // 修改用户

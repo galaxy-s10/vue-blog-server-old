@@ -9,28 +9,28 @@ var User_role = require('../models/User_role')
 var Role_auth = require('../models/Role_auth')
 
 // 判断权限
-router.use('/', async (req, res, next) => {
-    console.log('判断权限');
-    const validateList = ['/list']
-    if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-        const jwt_res = await autojwt(req)
-        console.log('jwt_res')
-        console.log(jwt_res)
-        if (jwt_res.code == 401) {
-            console.log(jwt_res.message);
-            next(jwt_res)
-        } else {
-            console.log('合法token');
-            next()
-        }
-        // 不加return会继续执行if语句外面的代码
-        return
-    } else {
-        next()
-        return
-    }
-    // console.log('没想到吧，我还会执行');
-})
+// router.use('/', async (req, res, next) => {
+//     console.log('判断权限');
+//     const validateList = ['/list']
+//     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
+//         const jwt_res = await autojwt(req)
+//         console.log('jwt_res')
+//         console.log(jwt_res)
+//         if (jwt_res.code == 401) {
+//             console.log(jwt_res.message);
+//             next(jwt_res)
+//         } else {
+//             console.log('合法token');
+//             next()
+//         }
+//         // 不加return会继续执行if语句外面的代码
+//         return
+//     } else {
+//         next()
+//         return
+//     }
+//     // console.log('没想到吧，我还会执行');
+// })
 
 // 判断参数
 const validateLink = Joi.object({
@@ -47,8 +47,31 @@ const validateLink = Joi.object({
 // 获取所有权限
 router.get('/list', async function (req, res) {
     console.log('ssss')
-    var { rows, count } = await Auth.findAndCountAll()
-    res.json({ count, rows })
+    var { count, rows } = await Auth.findAndCountAll()
+    res.status(200).json({ count, rows })
+})
+
+// 获取某个用户的所有权限
+router.get('/getUserAuth', async function (req, res) {
+    const { id } = req.query
+    console.log('getUserAuthgetUserAuth')
+    var { count, rows } = await User_role.findAndCountAll({
+        include: [
+            {
+                model: Role,
+                include: [
+                    {
+                        model: Auth,
+                        through: { attributes: [] },
+                    }
+                ]
+            }
+        ],
+        where: { user_id: id },
+        // 去重
+        distinct: true,
+    })
+    res.status(200).json({ count, rows })
 })
 
 
