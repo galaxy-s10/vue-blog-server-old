@@ -1,12 +1,11 @@
 var express = require('express')
 var router = express.Router()
 var qiniu = require('../models/qiniu')
-const { autojwt } = require('./auto_jwt');
-const auto_jwt = require('./auto_jwt');
+const authJwt = require('../lib/authJwt');
 
 // 获取七牛云token
 router.get('/token', function (req, res, next) {
-    const jwt_res = autojwt(req)
+    const jwt_res = authJwt(req)
     if (jwt_res.code == 401) {
         next(jwt_res)
         return
@@ -16,7 +15,7 @@ router.get('/token', function (req, res, next) {
 })
 // 删除七牛云文件
 router.get('/del', function (req, res, next) {
-    const jwt_res = autojwt(req)
+    const jwt_res = authJwt(req)
     if (jwt_res.code == 401) {
         next(jwt_res)
         return

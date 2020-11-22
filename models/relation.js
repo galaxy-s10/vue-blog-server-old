@@ -8,6 +8,7 @@ var Auth = require('./Auth')
 var Role = require('./Role')
 var Role_auth = require('./Role_auth')
 var User_role = require('./User_role')
+var Log = require('./Log')
 
 // 一对一关联：belongsTo，hasOne 
 // 一对多关联：hasMany
@@ -41,3 +42,6 @@ User.belongsToMany(Role, { through: User_role, foreignKey: 'user_id', otherKey: 
 
 Role.belongsToMany(Auth, { through: Role_auth, foreignKey: 'role_id', otherKey: 'auth_id' })
 Auth.belongsToMany(Role, { through: Role_auth, foreignKey: 'auth_id', otherKey: 'role_id' })
+
+User.hasMany(Log, { foreignKey: 'user_id', sourceKey: 'id' })
+Log.belongsTo(User, { foreignKey: 'user_id', targetKey: 'id' })

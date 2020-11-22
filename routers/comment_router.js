@@ -6,14 +6,14 @@ const Op = Sequelize.Op;
 var Comment = require('../models/Comment')
 var User = require('../models/User')
 var Article = require('../models/Article')
-var { autojwt } = require('./auto_jwt')
+var authJwt = require('../lib/authJwt')
 
 // 判断权限
 router.use((req, res, next) => {
     const validateList = ['/add']
     console.log(validateList.indexOf(req.path.toLowerCase()));
     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-        const jwt_res = autojwt(req)
+        const jwt_res = authJwt(req)
         console.log('判断权限');
         console.log(jwt_res);
         jwt_res.code == 401 ? next(jwt_res) : next()

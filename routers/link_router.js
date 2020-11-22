@@ -1,6 +1,6 @@
 var express = require('express')
 var router = express.Router()
-const { autojwt } = require('./auto_jwt');
+var authJwt = require('../lib/authJwt')
 const Joi = require('@hapi/joi')
 var Link = require('../models/Link')
 
@@ -9,7 +9,7 @@ router.use('/', (req, res, next) => {
     console.log('判断权限');
     const validateList = ['/add', '/del', '/edit']
     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-        const jwt_res = autojwt(req)
+        const jwt_res = authJwt(req)
         if (jwt_res.code == 401) {
             console.log(jwt_res.message);
             next(jwt_res)
@@ -53,7 +53,7 @@ router.post('/add', async function (req, res, next) {
         return
     }
     const { name, avatar, description, url } = req.body
-    const jwt_res = autojwt(req)
+    const jwt_res = authJwt(req)
     if (jwt_res.user.role == 'admin') {
         var create_res = await Link.create(
             {
@@ -75,7 +75,7 @@ router.put('/edit', async function (req, res, next) {
         return
     }
     const { id, name, avatar, description, url } = req.body
-    const jwt_res = autojwt(req)
+    const jwt_res = authJwt(req)
     if (jwt_res.user.role == 'admin') {
         var update_res = await Link.update(
             {
@@ -100,7 +100,7 @@ router.delete('/del', async function (req, res, next) {
         next({ code: 400, message: err.message })
         return
     }
-    const jwt_res = autojwt(req)
+    const jwt_res = authJwt(req)
     if (jwt_res.user.role == 'admin') {
         var del_res = await Link.destroy(
             {

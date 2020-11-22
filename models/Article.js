@@ -16,10 +16,10 @@ const Article = sequelize.define(
         type: {
             type: Sequelize.STRING(20),
         },
-        status: {
+        is_comment: {
             type: Sequelize.INTEGER,
         },
-        isComment: {
+        status: {
             type: Sequelize.INTEGER,
         },
         img: {

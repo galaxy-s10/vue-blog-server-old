@@ -5,7 +5,7 @@ var Article = require('../models/Article')
 var Article_tag = require('../models/Article_tag')
 var Tag = require('../models/Tag')
 var Comment = require('../models/Comment')
-var { autojwt } = require('./auto_jwt')
+var authJwt = require('../lib/authJwt')
 
 // 判断权限
 router.use((req, res, next) => {
@@ -13,7 +13,7 @@ router.use((req, res, next) => {
     const validateList = ['/add', '/del']
     console.log(validateList.indexOf(req.path.toLowerCase()));
     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-        const jwt_res = autojwt(req)
+        const jwt_res = authJwt(req)
         console.log(jwt_res);
         jwt_res.code == 401 ? next(jwt_res) : next()
         // 不加return会继续执行if语句外面的代码
@@ -94,14 +94,14 @@ router.get('/page', async function (req, res) {
 })
 
 // 新增标签
-router.post('/add', async function (req, res,next) {
+router.post('/add', async function (req, res, next) {
     try {
         await validateTag.validateAsync(req.body, { convert: false })
     } catch (err) {
         next({ code: 400, message: err.message })
         return
     }
-    const jwt_res = autojwt(req)
+    const jwt_res = authJwt(req)
     if (jwt_res.user.role == 'admin') {
         const { name, color } = req.body
         const ress = await Tag.create({
@@ -115,18 +115,18 @@ router.post('/add', async function (req, res,next) {
 })
 
 // 删除标签
-router.delete('/del', async function (req, res,next) {
+router.delete('/del', async function (req, res, next) {
     try {
         await Joi.number().required().validateAsync(req.body.id, { convert: false })
     } catch (err) {
         next({ code: 400, message: err.message })
         return
     }
-    const jwt_res = autojwt(req)
+    const jwt_res = authJwt(req)
     if (jwt_res.user.role == 'admin') {
         let find_tag = await Tag.findByPk(req.body.id)
         console.log(find_tag);
-        if(find_tag == null){
+        if (find_tag == null) {
             next({ code: 400, message: '不能删除不存在的tag!' })
             return
         }

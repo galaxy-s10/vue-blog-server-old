@@ -1,6 +1,6 @@
 var express = require('express')
 var router = express.Router()
-const { autojwt } = require('./auto_jwt');
+var authJwt = require('../lib/authJwt')
 const Joi = require('@hapi/joi')
 var User = require('../models/User')
 var Role = require('../models/Role')
@@ -13,7 +13,7 @@ var Role_auth = require('../models/Role_auth')
 //     console.log('判断权限');
 //     const validateList = ['/add', '/del', '/edit']
 //     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-//         const jwt_res = autojwt(req)
+//         const jwt_res = authJwt(req)
 //         if (jwt_res.code == 401) {
 //             console.log(jwt_res.message);
 //             next(jwt_res)

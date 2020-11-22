@@ -1,12 +1,13 @@
-var express = require('express')
-var router = express.Router()
-const { autojwt } = require('./auto_jwt');
+const express = require('express')
+const router = express.Router()
+const permission = require('../lib/permission')
 const Joi = require('@hapi/joi')
-var User = require('../models/User')
-var Role = require('../models/Role')
-var Auth = require('../models/Auth')
-var User_role = require('../models/User_role')
-var Role_auth = require('../models/Role_auth')
+const User = require('../models/User')
+const Role = require('../models/Role')
+const Auth = require('../models/Auth')
+const User_role = require('../models/User_role')
+const Role_auth = require('../models/Role_auth')
+const userInfo = require('../lib/userInfo')
 
 // 判断权限
 // router.use('/', async (req, res, next) => {
@@ -44,7 +45,7 @@ const validateLink = Joi.object({
 
 // 获取所有角色
 router.get('/list', async function (req, res) {
-    var { rows, count } = await Role.findAndCountAll()
+    const { rows, count } = await Role.findAndCountAll()
     res.json({ count, rows })
 })
 
@@ -67,6 +68,13 @@ router.get('/list', async function (req, res) {
 router.put('/editUserRole', async function (req, res) {
     let { id, roles } = req.body
     console.log(id, roles);
+    let permissionResult = await permission(userInfo.id, 'UPDATE_ROLE')
+    console.log('permissionResultpermissionResult')
+    console.log(permissionResult)
+    if (permissionResult.code == 403) {
+        next(permissionResult)
+        return
+    }
     let update_roles = await Role.findAll({ where: { id: roles } })
     let find_user = await User.findByPk(id)
     let result = await find_user.setRoles(update_roles)
@@ -74,7 +82,16 @@ router.put('/editUserRole', async function (req, res) {
 })
 
 // 修改某个角色的权限
-router.put('/editRoleAuth', async function (req, res) {
+router.put('/editRoleAuth', async function (req, res, next) {
+    console.log('userInfouserInfouserInfo')
+    console.log(userInfo)
+    let permissionResult = await permission(userInfo.id, 'UPDATE_ROLE')
+    console.log('permissionResultpermissionResult')
+    console.log(permissionResult)
+    if (permissionResult.code == 403) {
+        next(permissionResult)
+        return
+    }
     let { id, auths } = req.body
     console.log(id, auths);
     let update_auths = await Auth.findAll({ where: { id: auths } })

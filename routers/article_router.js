@@ -6,48 +6,48 @@ var router = express.Router()
 var Article = require('../models/Article')
 var Tag = require('../models/Tag')
 var Comment = require('../models/Comment')
-var { autojwt } = require('./auto_jwt');
+var authJwt = require('../lib/authJwt');
 
 // 判断权限
-router.use((req, res, next) => {
-    console.log('判断权限');
-    const validateList = ['/add', '/del', '/edit']
-    console.log(validateList.indexOf(req.path.toLowerCase()));
-    if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-        const jwt_res = autojwt(req)
-        console.log(jwt_res);
-        jwt_res.code == 401 ? next(jwt_res) : next()
-        // 不加return会继续执行if语句外面的代码
-        return
-    } else {
-        next()
-    }
-    // console.log('没想到吧，我还会执行');
-})
+// router.use((req, res, next) => {
+//     console.log('判断权限');
+//     const validateList = ['/add', '/del', '/edit']
+//     console.log(validateList.indexOf(req.path.toLowerCase()));
+//     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
+//         const jwt_res = authJwt(req)
+//         console.log(jwt_res);
+//         jwt_res.code == 401 ? next(jwt_res) : next()
+//         // 不加return会继续执行if语句外面的代码
+//         return
+//     } else {
+//         next()
+//     }
+//     // console.log('没想到吧，我还会执行');
+// })
 
 // 判断参数
-const validateArticle = Joi.object({
-    id: [
-        null,
-        Joi.number()
-    ],
-    title: Joi.string()
-        .min(3)
-        .max(20)
-        .required(),
-    type: Joi.string()
-        .min(2)
-        .max(5)
-        .required(),
-    img: [
-        null,
-        Joi.string().min(3).max(100),
-    ],
-    content: Joi.string().min(3).required(),
-    date: Joi.string().max(20).required(),
-    click: Joi.number(),
-    tagList: Joi.array().required()
-}).xor('img').xor('id')
+// const validateArticle = Joi.object({
+//     id: [
+//         null,
+//         Joi.number()
+//     ],
+//     title: Joi.string()
+//         .min(3)
+//         .max(20)
+//         .required(),
+//     type: Joi.string()
+//         .min(2)
+//         .max(5)
+//         .required(),
+//     img: [
+//         null,
+//         Joi.string().min(3).max(100),
+//     ],
+//     content: Joi.string().min(3).required(),
+//     date: Joi.string().max(20).required(),
+//     click: Joi.number(),
+//     tagList: Joi.array().required()
+// }).xor('img').xor('id')
 
 
 //文章列表
@@ -88,9 +88,9 @@ router.get('/typelist', async function (req, res, next) {
 
 //文章分页
 router.get('/page', async function (req, res, next) {
-    var { ordername, orderby, type, nowpage, pagesize } = req.query
-    var offset = parseInt((nowpage - 1) * pagesize)
-    var limit = parseInt(pagesize)
+    var { ordername, orderby, type, nowPage, pageSize } = req.query
+    var offset = parseInt((nowPage - 1) * pageSize)
+    var limit = parseInt(pageSize)
     if (type) {
         var pagelist = await Article.findAndCountAll({
             where: { type },
@@ -155,7 +155,7 @@ router.post('/add', async function (req, res, next) {
         return
     }
     const { title, type, img, content, date, click, tagList } = req.body
-    const jwt_res = autojwt(req)
+    const jwt_res = authJwt(req)
     if (jwt_res.user.role == 'admin') {
         let aaa = await Article.create({
             title, type, img, content, date, click
@@ -180,7 +180,7 @@ router.delete('/del', async function (req, res, next) {
         next({ code: 400, message: err.message })
         return
     }
-    const jwt_res = autojwt(req)
+    const jwt_res = authJwt(req)
     if (jwt_res.user.role == 'admin') {
         let find_article = await Article.findByPk(req.body.id)
         let delelte_tag = await find_article.setTags([])
@@ -254,7 +254,7 @@ router.put('/edit', async function (req, res, next) {
     tagList.forEach((item) => {
         newtags.push(item.id)
     })
-    const jwt_res = autojwt(req)
+    const jwt_res = authJwt(req)
     if (jwt_res.user.role == 'admin') {
         let update_tags = await Tag.findAll({ where: { id: newtags } })
         let find_article = await Article.findByPk(id)

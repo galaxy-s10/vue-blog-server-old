@@ -1,29 +1,32 @@
 const express = require('express')
+const secret = require('../config/secret')
 const Joi = require('@hapi/joi')
 const jwt = require('jsonwebtoken');
 const router = express.Router()
 const User = require('../models/User')
-const MD5 = require('crypto-js/md5')
-const { autojwt } = require('./auto_jwt');
+const userInfo = require('../lib/userInfo')
+const permission = require('../lib/permission')
+const MD5 = require('crypto-js/md5');
+const authJwt = require('../lib/authJwt');
 
 // 判断权限
-router.use(async (req, res, next) => {
-    // const validateList = ['/getuserinfo', '/list', '/del', '/edit']
-    const validateList = ['/list', '/del', '/edit']
-    console.log(validateList.indexOf(req.path.toLowerCase()));
-    if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-        const jwt_res = await autojwt(req)
-        console.log('判断权限');
-        console.log(jwt_res);
-        jwt_res.code == 401 ? next(jwt_res) : next()
-        // 不加return会继续执行if语句外面的代码
-        return
-    } else {
-        console.log('xxxxxxxxxxxx');
-        next()
-    }
-    // console.log('没想到吧，我还会执行');
-})
+// router.use(async (req, res, next) => {
+//     // const validateList = ['/getuserinfo', '/list', '/del', '/edit']
+//     const validateList = ['/list', '/del', '/edit']
+//     // console.log(validateList.indexOf(req.path.toLowerCase()));
+//     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
+//         const jwt_res = await authJwt(req)
+//         console.log('判断权限');
+//         // console.log(jwt_res);
+//         jwt_res.code == 401 ? next(jwt_res) : next()
+//         // 不加return会继续执行if语句外面的代码
+//         return
+//     } else {
+//         // console.log('xxxxxxxxxxxx');
+//         next()
+//     }
+//     // console.log('没想到吧，我还会执行');
+// })
 
 // 判断参数
 const validateUser = Joi.object({
@@ -44,6 +47,7 @@ const validateUser = Joi.object({
     title: Joi.string().min(3).max(20),
 }).xor('id').xor('role').xor('avatar')
 
+
 // 注册用户
 router.post('/add', async function (req, res, next) {
     try {
@@ -61,7 +65,7 @@ router.post('/add', async function (req, res, next) {
     })
     // 查询是否同名用户
     if (!list) {
-        const jwt_res = autojwt(req)
+        const jwt_res = authJwt(req)
         if (role == 'admin') {
             if (jwt_res.code == 401) {
                 next(jwt_res)
@@ -93,35 +97,31 @@ router.post('/add', async function (req, res, next) {
 
 })
 
+
 // 登录
 router.post('/login', async function (req, res, next) {
     var { username, password } = req.body
-    console.log(username, password)
+    // console.log(username, password)
     if (username && password) {
         var password = MD5(password).toString()
-        const user = await User.findOne({
+        const userInfo = await User.findOne({
             attributes: { exclude: ['password', 'token'] },
             where: {
                 username, password
             }
         })
-        console.log('useruseruser')
-        console.log(user)
-        // console.log(user.id)
-        if (user) {
-            if (user.status == 2) {
-                console.log('禁用');
-                res.status(401).json({ code: 401, token: null, message: '该账号已被禁用！' })
-                return
+        if (userInfo) {
+            if (userInfo.status == 2) {
+                return next({ code: 403, token: null, message: '该账号已被禁用!' })
+                // res.status(403).json({ code: 403, token: null, message: '该账号已被禁用!' })
             }
             let created = Math.floor(Date.now() / 1000);
-            let secret = "token"
             const token = jwt.sign({
-                user,
+                userInfo,
                 exp: created + 60 * 60 * 24, //24小时后过期
                 // exp: created + 60 * 60, //一小时后过期
             }, secret)
-            let { id } = user
+            let { id } = userInfo
             await User.update(
                 {
                     token
@@ -142,17 +142,15 @@ router.post('/login', async function (req, res, next) {
 
 // 获取用户信息
 router.get('/getUserInfo', async function (req, res) {
-    const bool = await autojwt(req)
-    console.log('bool')
-    console.log(bool)
-    console.log(bool.user)
-    res.status(200).json({ code: 200, userinfo: bool.user })
+    console.log('getUserInfogetUserInfogetUserInfo')
+    const jwtResult = await authJwt(req)
+    res.status(200).json({ ...jwtResult })
 })
 
 // 获取用户列表
 router.get('/list', async function (req, res, next) {
     console.log('获取用户列表');
-    // const jwt_res = autojwt(req)
+    // const jwt_res = authJwt(req)
     // if (jwt_res.user.role == 'admin') {
     const list = await User.findAll()
     res.status(200).json({ code: 1, list })
@@ -183,15 +181,13 @@ router.get('/find', async function (req, res, next) {
 // 修改用户状态
 router.put('/editStatus', async function (req, res, next) {
     const { id, status } = req.body
-    // try {
-    //     await validateUser.validateAsync(req.body, { convert: false, allowUnknown: true })
-    // } catch (err) {
-    //     next({ code: 400, message: err.message })
-    //     return
-    // }
-    // const jwt_res = await autojwt(req)
-    // console.log(jwt_res);
-    // if (jwt_res.user.role == 'admin') {
+    let permissionResult = await permission(userInfo.id, 'UPDATE_USER')
+    console.log('permissionResultpermissionResult')
+    console.log(permissionResult)
+    if (permissionResult.code == 403) {
+        next(permissionResult)
+        return
+    }
     const result = await User.update(
         {
             status
@@ -215,7 +211,7 @@ router.put('/edit', async function (req, res, next) {
         next({ code: 400, message: err.message })
         return
     }
-    const jwt_res = autojwt(req)
+    const jwt_res = authJwt(req)
     if (jwt_res.user.role == 'admin') {
         const edit_res = await User.update(
             {
@@ -239,7 +235,7 @@ router.delete('/del', async function (req, res, next) {
         next({ code: 400, message: err.message })
         return
     }
-    const jwt_res = autojwt(req)
+    const jwt_res = authJwt(req)
     if (jwt_res.user.role == 'admin') {
         const del_res = await User.destroy({
             where: {
