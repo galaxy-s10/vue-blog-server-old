@@ -65,9 +65,41 @@ router.get('/list', async function (req, res) {
 // })
 
 // 更新某个用户的角色
+router.put('/aaa', async function (req, res) {
+    let id = 1
+    var { count, rows } = await User_role.findAndCountAll({
+        include: [
+            {
+                model: Role,
+                include: [
+                    {
+                        model: Auth,
+                        through: { attributes: [] },
+                    }
+                ]
+            }
+        ],
+        where: { user_id: id }
+    })
+    res.json(rows)
+    let temp = [];
+    console.log("获取某个用户的所有权限");
+    rows.forEach((item) => {
+        // console.log(item.role.auths);
+        item.role.auths.forEach((val) => {
+            temp.push(val.auth_name);
+        });
+    });
+    // console.log(temp);
+    // console.log([...new Set(temp)]);
+    res.status(200).json({ code: 200, temp })
+})
+// 更新某个用户的角色
 router.put('/editUserRole', async function (req, res) {
     let { id, roles } = req.body
     console.log(id, roles);
+    console.log('更新某个用户的角色')
+    console.log(userInfo.id)
     let permissionResult = await permission(userInfo.id, 'UPDATE_ROLE')
     console.log('permissionResultpermissionResult')
     console.log(permissionResult)

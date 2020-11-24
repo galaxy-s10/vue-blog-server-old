@@ -89,13 +89,13 @@ router.get('/userRoleList', async function (req, res) {
                         model: Role,
                         as: 'p_role',
                         // through: { attributes: [] },
-                        include: [
-                            {
-                                model: Role,
-                                as: 'p_role'
-                                // through: { attributes: [] },
-                            }
-                        ],
+                        // include: [
+                        //     {
+                        //         model: Role,
+                        //         as: 'p_role'
+                        //         // through: { attributes: [] },
+                        //     }
+                        // ],
                     }
                 ],
             },
