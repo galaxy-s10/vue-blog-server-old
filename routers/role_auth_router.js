@@ -83,13 +83,23 @@ router.get('/userRoleList', async function (req, res) {
             {
                 // attributes: { exclude: ['password', 'token'] },
                 model: Role,
-                // include: [
-                //     {
-                //         model: Role,
-                //         through: { attributes: [] },
-                //     }
-                // ]
+                // as:'p_role',
+                include: [
+                    {
+                        model: Role,
+                        as: 'p_role',
+                        // through: { attributes: [] },
+                        include: [
+                            {
+                                model: Role,
+                                as: 'p_role'
+                                // through: { attributes: [] },
+                            }
+                        ],
+                    }
+                ],
             },
+
 
         ],
         // 去重

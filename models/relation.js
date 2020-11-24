@@ -40,8 +40,15 @@ Role_auth.belongsTo(Role, { foreignKey: 'role_id', targetKey: 'id' })
 Role.belongsToMany(User, { through: User_role, foreignKey: 'role_id', otherKey: 'user_id' })
 User.belongsToMany(Role, { through: User_role, foreignKey: 'user_id', otherKey: 'role_id' })
 
+User_role.belongsTo(User, { foreignKey: "user_id", targetKey: 'id' })
+User_role.belongsTo(Role, { foreignKey: "role_id", targetKey: 'id' })
+
 Role.belongsToMany(Auth, { through: Role_auth, foreignKey: 'role_id', otherKey: 'auth_id' })
 Auth.belongsToMany(Role, { through: Role_auth, foreignKey: 'auth_id', otherKey: 'role_id' })
 
 User.hasMany(Log, { foreignKey: 'user_id', sourceKey: 'id' })
 Log.belongsTo(User, { foreignKey: 'user_id', targetKey: 'id' })
+
+Role.belongsTo(Role, { as: "p_role", foreignKey: 'p_id', sourceKey: 'id' })
+// Role.hasMany(Role, { as: "h_role", foreignKey: 'id', sourceKey: 'p_id' })
+Auth.hasMany(Auth, { foreignKey: 'id', sourceKey: 'p_id' })
