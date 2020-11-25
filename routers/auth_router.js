@@ -74,5 +74,18 @@ router.get('/getUserAuth', async function (req, res) {
     res.status(200).json({ count, rows })
 })
 
+// 新增权限
+router.post('/addAuth', async function (req, res) {
+    const { id, authList } = req.body
+    console.log(id, authList)
+    console.log('addAuthaddAuth')
+    let find_role = await Role.findByPk(id)
+    let bbb = await Auth.findAll({ where: { id: authList } })
+    let ccc = find_role.setAuths(bbb)
+    res.status(200).json({
+        ccc
+    })
+})
+
 
 module.exports = router

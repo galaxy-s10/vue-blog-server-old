@@ -44,7 +44,7 @@ const validateLink = Joi.object({
 }).xor('id')
 
 // 获取所有角色
-router.get('/list', async function (req, res) {
+router.get('/list', async function (req, res, next) {
     const { rows, count } = await Role.findAndCountAll()
     res.json({ count, rows })
 })
@@ -64,8 +64,8 @@ router.get('/list', async function (req, res) {
 //     res.status(200).json({ code: 200, result })
 // })
 
-// 更新某个用户的角色
-router.put('/aaa', async function (req, res) {
+// 测试接口
+router.put('/aaa', async function (req, res, next) {
     let id = 1
     var { count, rows } = await User_role.findAndCountAll({
         include: [
@@ -94,8 +94,10 @@ router.put('/aaa', async function (req, res) {
     // console.log([...new Set(temp)]);
     res.status(200).json({ code: 200, temp })
 })
+
+
 // 更新某个用户的角色
-router.put('/editUserRole', async function (req, res) {
+router.put('/editUserRole', async function (req, res, next) {
     let { id, roles } = req.body
     console.log(id, roles);
     console.log('更新某个用户的角色')
@@ -130,6 +132,47 @@ router.put('/editRoleAuth', async function (req, res, next) {
     let find_role = await Role.findByPk(id)
     let result = await find_role.setAuths(update_auths)
     res.status(200).json({ code: 200, result })
+})
+
+// 添加角色
+router.post('/addRole', async function (req, res, next) {
+    console.log('userInfouserInfouserInfo')
+    console.log(userInfo)
+    let permissionResult = await permission(userInfo.id, 'ADD_ROLE')
+    console.log('permissionResultpermissionResult')
+    console.log(permissionResult)
+    if (permissionResult.code == 403) {
+        next(permissionResult)
+        return
+    }
+    let { p_id, role_name, role_description } = req.body
+    let result = await Role.create({
+        p_id, role_name, role_description
+    })
+    res.status(200).json({ code: 200, result, message: "添加角色成功!" })
+})
+
+// 删除角色
+router.delete('/deleteRole', async function (req, res, next) {
+    console.log('userInfouserInfouserInfo')
+    console.log(userInfo)
+    let permissionResult = await permission(userInfo.id, 'DELETE_ROLE')
+    console.log('permissionResultpermissionResult')
+    console.log(permissionResult)
+    if (permissionResult.code == 403) {
+        next(permissionResult)
+        return
+    }
+    let find_role = await Role.findByPk(req.body.id)
+    console.log(find_role);
+    if (find_role == null) {
+        next({ code: 400, message: '不能删除不存在的role!' })
+        return
+    }
+    let delelte_res = await find_role.setUsers([])
+    await find_role.destroy()
+    res.status(200).json(delelte_res)
+    res.status(200).json({ code: 200, delelte_res, message: "删除角色成功!" })
 })
 
 
