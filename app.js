@@ -41,6 +41,7 @@ let role_router = require('./routers/role_router')
 let auth_router = require('./routers/auth_router')
 let role_auth_router = require('./routers/role_auth_router')
 let log_router = require('./routers/log_router')
+let star_router = require('./routers/star_router')
 
 //转换时间格式
 function formateDate(datetime) {
@@ -73,9 +74,10 @@ app.use('/', async (req, res, next) => {
   let jwtResult = await authJwt(req)
   if (jwtResult.code == 401 && jwtResult.message != '未登录!') {
     next(jwtResult)
+    return
   } else {
     console.log('jwtResult.code')
-    console.log(jwtResult.code)
+    console.log(jwtResult)
     if (jwtResult.code == 200) {
       let getStatusResult = await getStatus(jwtResult.userInfo.id)
       if (getStatusResult.code == 403) {
@@ -102,6 +104,7 @@ app.use('/role', role_router)
 app.use('/auth', auth_router)
 app.use('/roleauth', role_auth_router)
 app.use('/log', log_router)
+app.use('/star', star_router)
 
 // 统一处理报错
 app.use('/', (err, req, res, next) => {

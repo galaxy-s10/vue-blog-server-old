@@ -7,6 +7,7 @@ var Role = require('../models/Role')
 var Auth = require('../models/Auth')
 var User_role = require('../models/User_role')
 var Role_auth = require('../models/Role_auth')
+const { query } = require('express')
 
 // 判断权限
 // router.use('/', async (req, res, next) => {
@@ -74,16 +75,77 @@ router.get('/getUserAuth', async function (req, res) {
     res.status(200).json({ count, rows })
 })
 
+
+// 查询某个权限的父级
+router.get('/findParentAuth', async function (req, res) {
+    // 查询当前权限的父级p_id
+    let { p_id } = await Auth.findOne({
+        attributes: ["p_id"],
+        where: { id: req.query.id }
+    })
+    // 查询父级的p_id
+    let result = await Auth.findOne({
+        attributes: ["p_id"],
+        where: { id: p_id }
+    })
+    let list
+    if (result) {
+        // 查询所有权限的p_id是父级p_id的数据
+        list = await Auth.findAndCountAll({
+            where: { p_id: result.p_id }
+        })
+    } else {
+        // 查询所有权限的p_id是父级p_id的数据
+        list = await Auth.findAndCountAll({
+            where: { p_id: 0 }
+        })
+    }
+    res.status(200).json({
+        code: 200, list, message: "查询该权限父级成功"
+    })
+})
+
+// 修改某个权限
+router.put('/editAuth', async function (req, res) {
+    let { id, p_id, auth_name, auth_description } = req.body
+    console.log(id, p_id, auth_name, auth_description)
+    let result = await Auth.update(
+        {
+            p_id, auth_name, auth_description,
+        },
+        {
+            where: { id }
+        }
+    )
+    // let result = 100
+    res.status(200).json({
+        code: 200, result, message: "修改权限成功!"
+    })
+})
+
 // 新增权限
 router.post('/addAuth', async function (req, res) {
-    const { id, authList } = req.body
-    console.log(id, authList)
-    console.log('addAuthaddAuth')
-    let find_role = await Role.findByPk(id)
-    let bbb = await Auth.findAll({ where: { id: authList } })
-    let ccc = find_role.setAuths(bbb)
+    let { id, p_id, auth_name, auth_description } = req.body
+    let result = Auth.create(
+        {
+            p_id, auth_name, auth_description,
+        },
+    )
     res.status(200).json({
-        ccc
+        code: 200, result, message: "新增权限成功!"
+    })
+})
+
+// 删除权限
+router.delete('/delAuth', async function (req, res) {
+    let { id } = req.body
+    let result = Auth.destroy(
+        {
+            where: { id },
+        },
+    )
+    res.status(200).json({
+        code: 200, result, message: "删除权限成功!"
     })
 })
 

@@ -9,6 +9,7 @@ var Role = require('./Role')
 var Role_auth = require('./Role_auth')
 var User_role = require('./User_role')
 var Log = require('./Log')
+var Star = require('./Star')
 
 // 一对一关联：belongsTo，hasOne 
 // 一对多关联：hasMany
@@ -52,3 +53,11 @@ Log.belongsTo(User, { foreignKey: 'user_id', targetKey: 'id' })
 Role.belongsTo(Role, { as: "p_role", foreignKey: 'p_id', sourceKey: 'id' })
 // Role.hasMany(Role, { as: "h_role", foreignKey: 'id', sourceKey: 'p_id' })
 Auth.hasMany(Auth, { foreignKey: 'id', sourceKey: 'p_id' })
+
+// 点赞
+Star.belongsTo(Article, { foreignKey: "article_id", targetKey: "id" })
+Star.belongsTo(Comment, { foreignKey: "comment_id", targetKey: "id" })
+Star.belongsTo(User, { foreignKey: "from_user_id", targetKey: "id" })
+
+Article.hasMany(Star, { foreignKey: "article_id", sourceKey: "id" })
+User.hasMany(Star, { foreignKey: "to_user_id", sourceKey: "id" })

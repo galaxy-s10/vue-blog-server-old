@@ -6,6 +6,7 @@ var router = express.Router()
 var Article = require('../models/Article')
 var Tag = require('../models/Tag')
 var Comment = require('../models/Comment')
+var Star = require('../models/Star')
 var authJwt = require('../lib/authJwt');
 
 // 判断权限
@@ -89,6 +90,7 @@ router.get('/typelist', async function (req, res, next) {
 //文章分页
 router.get('/page', async function (req, res, next) {
     var { ordername, orderby, type, nowPage, pageSize } = req.query
+    console.log(ordername, orderby, type, nowPage, pageSize)
     var offset = parseInt((nowPage - 1) * pageSize)
     var limit = parseInt(pageSize)
     if (type) {
@@ -104,6 +106,9 @@ router.get('/page', async function (req, res, next) {
                 {
                     model: Tag,
                     through: { attributes: [] },
+                },
+                {
+                    model: Star,
                 },
             ],
             // 去重
@@ -126,10 +131,14 @@ router.get('/page', async function (req, res, next) {
     }
     if (type == undefined && ordername == undefined && orderby == undefined) {
         var pagelist = await Article.findAndCountAll({
-            order: [['date', 'desc']],
+            // order: [['date', 'desc']],
+            order: [['id', 'asc']],
             limit: limit,
             offset: offset,
             include: [
+                {
+                    model: Star,
+                },
                 {
                     model: Comment,
                 },
