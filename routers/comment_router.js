@@ -6,7 +6,9 @@ const Op = Sequelize.Op;
 var Comment = require('../models/Comment')
 var User = require('../models/User')
 var Article = require('../models/Article')
+var Star = require('../models/Star')
 var authJwt = require('../lib/authJwt')
+const userInfo = require('../lib/userInfo')
 
 // 判断权限
 router.use((req, res, next) => {
@@ -42,43 +44,110 @@ const validateComment = Joi.object({
 //留言板留言/单篇文章留言列表
 router.get('/', async function (req, res) {
     var { article_id } = req.query
+    var currentId = userInfo.id || -2
+    let pageSize = 3
     var { rows, count } = await Comment.findAndCountAll({
-        where: { article_id },
-        include: [{
-            model: User,
-            attributes: ['username', 'avatar', 'role'],
-            as: "from_user",
+        where: {
+            article_id,
         },
-        {
-            model: User,
-            attributes: ['username', 'avatar', 'role'],
-            as: "to_user",
-        }
+        offset: 0,
+        limit: 3,
+        include: [
+            {
+                model: Star,
+                include: [
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "from_user",
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "to_user",
+                    }
+                ]
+            },
+            {
+                order: [['createdAt', 'DESC']],
+                model: Comment,
+                as: "huifu",
+                offset: 0,
+                limit: 2,
+                include: [
+                    {
+                        model: Star,
+                        include: [
+                            {
+                                model: User,
+                                attributes: ['username', 'avatar', 'role'],
+                                as: "from_user",
+                            },
+                            {
+                                model: User,
+                                attributes: ['username', 'avatar', 'role'],
+                                as: "to_user",
+                            }
+                        ]
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "from_user",
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "to_user",
+                    }
+                ],
+            },
+            {
+                model: User,
+                attributes: ['username', 'avatar', 'role'],
+                as: "from_user",
+            },
+            {
+                model: User,
+                attributes: ['username', 'avatar', 'role'],
+                as: "to_user",
+            }
+
         ],
-        order: [['createdAt', 'DESC']],
+        distinct: true
     })
-    // res.json({ rows, count })
-    var lists = []
-    // 遍历原本的数据
-    for (var i = 0; i < rows.length; i++) {
-        // var father = rows[i]
-        // 获取干净的JSON对象
-        var list = rows[i].get({
+    var newlist = [];
+    for (let i = 0; i < rows.length; i++) {
+        var temp = rows[i].get({
             plain: true,
         })
-        // 如果newrows里有to_commentid,则把这条数据插入它的父级
-        var child = []
-        for (var j = 0; j < rows.length; j++) {
-            if (rows[j].to_commentid == list.id) {
-                child.push(rows[j])
-            }
+        if (temp.stars.length) {
+            temp.stars.forEach(item => {
+                if (item.from_user_id == currentId) {
+                    temp.isStar = true
+                } else {
+                    temp.isStar = false
+                }
+            })
+        } else {
+            temp.isStar = false
         }
-        list.children = child
-        if (rows[i].to_commentid == -1) {
-            lists.push(list)
+        if (temp.huifu.length) {
+            temp.huifu.forEach(item2 => {
+                item2.stars.forEach(item1 => {
+                    if (item1.from_user_id == currentId) {
+                        item2.isStar = true
+                    } else {
+                        item2.isStar = false
+                    }
+                })
+            })
         }
+
+        newlist.push(temp)
     }
-    res.json({ lists, count })
+    rows = newlist
+    res.json({ count, rows })
 
 })
 
