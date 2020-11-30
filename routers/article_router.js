@@ -95,7 +95,7 @@ router.get('/page', async function (req, res, next) {
     var limit = parseInt(pageSize)
     if (type) {
         var pagelist = await Article.findAndCountAll({
-            where: { type },
+            where: { type, status: 1 },
             order: [['date', 'desc']],
             limit: limit,
             offset: offset,
@@ -119,6 +119,7 @@ router.get('/page', async function (req, res, next) {
         var ordername = ordername.replace(/\'/g, "")
         var orderby = orderby.replace(/\'/g, "")
         var pagelist = await Article.findAndCountAll({
+            where: { status: 1 },
             order: [[ordername, orderby]],
             limit: limit,
             offset: offset,
@@ -132,6 +133,7 @@ router.get('/page', async function (req, res, next) {
     if (type == undefined && ordername == undefined && orderby == undefined) {
         var pagelist = await Article.findAndCountAll({
             // order: [['date', 'desc']],
+            where: { status: 1 },
             order: [['id', 'asc']],
             limit: limit,
             offset: offset,
