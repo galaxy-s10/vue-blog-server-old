@@ -15,8 +15,8 @@ var Star = require('./Star')
 // 一对多关联：hasMany
 // 多对多关联：belongsToMany
 
-Comment.belongsTo(User, { as: 'from_user', foreignKey: 'from_userid', targetKey: 'id' })
-Comment.belongsTo(User, { as: 'to_user', foreignKey: 'to_userid', targetKey: 'id' })
+Comment.belongsTo(User, { as: 'from_user', foreignKey: 'from_user_id', targetKey: 'id' })
+Comment.belongsTo(User, { as: 'to_user', foreignKey: 'to_user_id', targetKey: 'id' })
 
 // Article有很多Comment,也就是Article是主键表,Comment是外键表。外键在Comment表里,主键在Article里
 Article.hasMany(Comment, { foreignKey: 'article_id', sourceKey: 'id' })
@@ -68,7 +68,7 @@ Star.belongsTo(User, { as: "from_user", foreignKey: "from_user_id", targetKey: "
 Star.belongsTo(User, { as: "to_user", foreignKey: "to_user_id", targetKey: "id" })
 
 // 评论回复
-// Comment.belongsTo(Comment, { as: "huifu", foreignKey: "to_commentid", targetKey: "id" })
+// Comment.belongsTo(Comment, { as: "huifu", foreignKey: "to_comment_id", targetKey: "id" })
 // 自连接的源键其实可以不写，不写默认就是mode里定义的主键
-// Comment.hasMany(Comment, { as: "huifu", foreignKey: "to_commentid", sourceKey: "id" })
-Comment.hasMany(Comment, { as: "huifu", foreignKey: "to_commentid", sourceKey: "id" })
+// Comment.hasMany(Comment, { as: "huifu", foreignKey: "to_comment_id", sourceKey: "id" })
+Comment.hasMany(Comment, { as: "huifu", foreignKey: "to_comment_id", sourceKey: "id" })

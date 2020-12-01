@@ -34,377 +34,395 @@ const validateComment = Joi.object({
         Joi.number()
     ],
     article_id: Joi.number().required(),
-    from_userid: Joi.number().required(),
+    from_user_id: Joi.number().required(),
     content: Joi.string().min(3).max(200).required(),
     to_commentid: Joi.number().required(),
-    to_userid: Joi.number().required(),
+    to_user_id: Joi.number().required(),
 }).xor('id')
 
 
 //留言板留言/单篇文章留言列表
 router.get('/', async function (req, res) {
+    var currentId = userInfo.id || -2
+    let { article_id, nowPage, pageSize, childrenNowPage, childrenPageSize } = req.query
+    var allCount = await Comment.findAndCountAll({ where: { article_id } })
+    var { count, rows } = await Comment.findAndCountAll({
+        where: {
+            article_id,
+            to_comment_id: -1
+        },
+        required: false,
+        order: [['createdAt', 'DESC']],
+        offset: parseInt((nowPage - 1) * pageSize),
+        limit: parseInt(pageSize),
+        include: [
+            {
+                where: {
+                    to_user_id: { [Op.ne]: -1 }
+                },
+                required: false,
+                model: Star,
+                include: [
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "from_user",
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "to_user",
+                    }
+                ]
+            },
+            {
+                // where: { to_comment_id: -1 },
+                // order: [['createdAt', 'DESC']],
+                model: Comment,
+                as: "huifu",
+                offset: parseInt((childrenNowPage - 1) * childrenPageSize),
+                limit: parseInt(childrenPageSize),
+                include: [
+                    {
+                        model: Star,
+                        include: [
+                            {
+                                model: User,
+                                attributes: ['username', 'avatar', 'role'],
+                                as: "from_user",
+                            },
+                            {
+                                model: User,
+                                attributes: ['username', 'avatar', 'role'],
+                                as: "to_user",
+                            }
+                        ]
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "from_user",
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "to_user",
+                    }
+                ],
+            },
+            {
+                model: User,
+                attributes: ['username', 'avatar', 'role'],
+                as: "from_user",
+            },
+            {
+                model: User,
+                attributes: ['username', 'avatar', 'role'],
+                as: "to_user",
+            }
+
+        ],
+        distinct: true
+    })
+    // res.json({count,rows})
+    // return
+    var newlist = [];
+    for (let i = 0; i < rows.length; i++) {
+        var temp = rows[i].get({
+            plain: true,
+        })
+        temp.isStar = false
+        if (temp.huifu.length) {
+            temp.huifu.forEach(item => {
+                item.isStar = false
+            })
+        }
+    }
+    for (let i = 0; i < rows.length; i++) {
+        var temp = rows[i].get({
+            plain: true,
+        })
+        if (temp.stars.length) {
+            temp.stars.forEach(item => {
+                item.from_user_id
+            })
+            temp.stars.forEach(item => {
+                if (item.from_user_id == currentId) {
+                    temp.isStar = true
+                }
+            })
+        } else {
+            temp.isStar = false
+        }
+        if (temp.huifu.length) {
+            temp.huifu.forEach(item2 => {
+                item2.stars.forEach(item1 => {
+                    if (item1.from_user_id == currentId) {
+                        item2.isStar = true
+                    }
+                })
+            })
+        }
+
+        newlist.push(temp)
+    }
+    rows = newlist
+    res.json({ allCount: allCount.count, count, rows, nowPage: parseInt(nowPage), pageSize: parseInt(pageSize), lastPage: Math.ceil(count / pageSize) })
+})
+
+//子留言分页
+router.get('/childrenPage', async function (req, res) {
     // var { article_id } = req.query
     var currentId = userInfo.id || -2
-    let { article_id, nowPage, pageSize, childrenCommentId, childrenNowPage, childrenPageSize } = req.query
-    var offset = parseInt((nowPage - 1) * pageSize)
-    var limit = parseInt(pageSize)
-    if (nowPage && pageSize) {
-        var { rows, count } = await Comment.findAndCountAll({
-            where: {
-                article_id,
-            },
-            offset: parseInt((nowPage - 1) * pageSize),
-            limit: parseInt(pageSize),
-            include: [
-                {
-                    where: {
-                        to_user_id: { [Op.ne]: -1 }
+    let { article_id, childrenCommentId, childrenNowPage, childrenPageSize } = req.query
+    var { rows, count } = await Comment.findAndCountAll({
+        where: {
+            article_id,
+            to_commentid
+        },
+        offset: parseInt((childrenNowPage - 1) * childrenPageSize),
+        limit: parseInt(childrenPageSize),
+        include: [
+            {
+                where: {
+                    to_user_id: { [Op.ne]: -1 }
+                },
+                required: false,
+                model: Star,
+                include: [
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "from_user",
                     },
-                    required: false,
-                    model: Star,
-                    include: [
-                        {
-                            model: User,
-                            attributes: ['username', 'avatar', 'role'],
-                            as: "from_user",
-                        },
-                        {
-                            model: User,
-                            attributes: ['username', 'avatar', 'role'],
-                            as: "to_user",
-                        }
-                    ]
-                },
-                {
-                    order: [['createdAt', 'DESC']],
-                    model: Comment,
-                    as: "huifu",
-                    offset: 0,
-                    limit: 2,
-                    include: [
-                        {
-                            model: Star,
-                            include: [
-                                {
-                                    model: User,
-                                    attributes: ['username', 'avatar', 'role'],
-                                    as: "from_user",
-                                },
-                                {
-                                    model: User,
-                                    attributes: ['username', 'avatar', 'role'],
-                                    as: "to_user",
-                                }
-                            ]
-                        },
-                        {
-                            model: User,
-                            attributes: ['username', 'avatar', 'role'],
-                            as: "from_user",
-                        },
-                        {
-                            model: User,
-                            attributes: ['username', 'avatar', 'role'],
-                            as: "to_user",
-                        }
-                    ],
-                },
-                {
-                    model: User,
-                    attributes: ['username', 'avatar', 'role'],
-                    as: "from_user",
-                },
-                {
-                    model: User,
-                    attributes: ['username', 'avatar', 'role'],
-                    as: "to_user",
-                }
-
-            ],
-            distinct: true
-        })
-        var newlist = [];
-        for (let i = 0; i < rows.length; i++) {
-            var temp = rows[i].get({
-                plain: true,
-            })
-            temp.isStar = false
-            if (temp.huifu.length) {
-                temp.huifu.forEach(item => {
-                    item.isStar = false
-                })
-            }
-        }
-        for (let i = 0; i < rows.length; i++) {
-            var temp = rows[i].get({
-                plain: true,
-            })
-            if (temp.stars.length) {
-                temp.stars.forEach(item => {
-                    item.from_user_id
-                })
-                temp.stars.forEach(item => {
-                    if (item.from_user_id == currentId) {
-                        temp.isStar = true
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "to_user",
                     }
-                })
-            } else {
-                temp.isStar = false
-            }
-            if (temp.huifu.length) {
-                temp.huifu.forEach(item2 => {
-                    item2.stars.forEach(item1 => {
-                        if (item1.from_user_id == currentId) {
-                            item2.isStar = true
-                        }
-                    })
-                })
-            }
-
-            newlist.push(temp)
-        }
-        rows = newlist
-        res.json({ count, rows, nowPage, pageSize, lastPage: Math.ceil(count / pageSize) })
-        return
-    } else if (childrenCommentId && childrenNowPage && childrenPageSize) {
-        var { rows, count } = await Comment.findAndCountAll({
-            where: {
-                article_id,
+                ]
             },
-            offset: parseInt((nowPage - 1) * pageSize),
-            limit: parseInt(pageSize),
-            include: [
-                {
-                    where: {
-                        to_user_id: { [Op.ne]: -1 }
+            {
+                order: [['createdAt', 'DESC']],
+                model: Comment,
+                as: "huifu",
+                offset: 0,
+                limit: 2,
+                include: [
+                    {
+                        model: Star,
+                        include: [
+                            {
+                                model: User,
+                                attributes: ['username', 'avatar', 'role'],
+                                as: "from_user",
+                            },
+                            {
+                                model: User,
+                                attributes: ['username', 'avatar', 'role'],
+                                as: "to_user",
+                            }
+                        ]
                     },
-                    required: false,
-                    model: Star,
-                    include: [
-                        {
-                            model: User,
-                            attributes: ['username', 'avatar', 'role'],
-                            as: "from_user",
-                        },
-                        {
-                            model: User,
-                            attributes: ['username', 'avatar', 'role'],
-                            as: "to_user",
-                        }
-                    ]
-                },
-                {
-                    order: [['createdAt', 'DESC']],
-                    model: Comment,
-                    as: "huifu",
-                    offset: 0,
-                    limit: 2,
-                    include: [
-                        {
-                            model: Star,
-                            include: [
-                                {
-                                    model: User,
-                                    attributes: ['username', 'avatar', 'role'],
-                                    as: "from_user",
-                                },
-                                {
-                                    model: User,
-                                    attributes: ['username', 'avatar', 'role'],
-                                    as: "to_user",
-                                }
-                            ]
-                        },
-                        {
-                            model: User,
-                            attributes: ['username', 'avatar', 'role'],
-                            as: "from_user",
-                        },
-                        {
-                            model: User,
-                            attributes: ['username', 'avatar', 'role'],
-                            as: "to_user",
-                        }
-                    ],
-                },
-                {
-                    model: User,
-                    attributes: ['username', 'avatar', 'role'],
-                    as: "from_user",
-                },
-                {
-                    model: User,
-                    attributes: ['username', 'avatar', 'role'],
-                    as: "to_user",
-                }
-
-            ],
-            distinct: true
-        })
-        var newlist = [];
-        for (let i = 0; i < rows.length; i++) {
-            var temp = rows[i].get({
-                plain: true,
-            })
-            temp.isStar = false
-            if (temp.huifu.length) {
-                temp.huifu.forEach(item => {
-                    item.isStar = false
-                })
-            }
-        }
-        for (let i = 0; i < rows.length; i++) {
-            var temp = rows[i].get({
-                plain: true,
-            })
-            if (temp.stars.length) {
-                temp.stars.forEach(item => {
-                    item.from_user_id
-                })
-                temp.stars.forEach(item => {
-                    if (item.from_user_id == currentId) {
-                        temp.isStar = true
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "from_user",
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "to_user",
                     }
-                })
-            } else {
-                temp.isStar = false
-            }
-            if (temp.huifu.length) {
-                temp.huifu.forEach(item2 => {
-                    item2.stars.forEach(item1 => {
-                        if (item1.from_user_id == currentId) {
-                            item2.isStar = true
-                        }
-                    })
-                })
-            }
-
-            newlist.push(temp)
-        }
-        rows = newlist
-        res.json({ count, rows, childrenNowPage, childrenPageSize, childrenLastPage: Math.ceil(count / childrenPageSize) })
-        return
-    } else {
-        var { rows, count } = await Comment.findAndCountAll({
-            where: {
-                article_id,
+                ],
             },
-            offset: nowPage,
-            limit: pageSize,
-            include: [
-                {
-                    where: {
-                        to_user_id: { [Op.ne]: -1 }
-                    },
-                    required: false,
-                    model: Star,
-                    include: [
-                        {
-                            model: User,
-                            attributes: ['username', 'avatar', 'role'],
-                            as: "from_user",
-                        },
-                        {
-                            model: User,
-                            attributes: ['username', 'avatar', 'role'],
-                            as: "to_user",
-                        }
-                    ]
-                },
-                {
-                    order: [['createdAt', 'DESC']],
-                    model: Comment,
-                    as: "huifu",
-                    offset: 0,
-                    limit: 3,
-                    include: [
-                        {
-                            model: Star,
-                            include: [
-                                {
-                                    model: User,
-                                    attributes: ['username', 'avatar', 'role'],
-                                    as: "from_user",
-                                },
-                                {
-                                    model: User,
-                                    attributes: ['username', 'avatar', 'role'],
-                                    as: "to_user",
-                                }
-                            ]
-                        },
-                        {
-                            model: User,
-                            attributes: ['username', 'avatar', 'role'],
-                            as: "from_user",
-                        },
-                        {
-                            model: User,
-                            attributes: ['username', 'avatar', 'role'],
-                            as: "to_user",
-                        }
-                    ],
-                },
-                {
-                    model: User,
-                    attributes: ['username', 'avatar', 'role'],
-                    as: "from_user",
-                },
-                {
-                    model: User,
-                    attributes: ['username', 'avatar', 'role'],
-                    as: "to_user",
-                }
+            {
+                model: User,
+                attributes: ['username', 'avatar', 'role'],
+                as: "from_user",
+            },
+            {
+                model: User,
+                attributes: ['username', 'avatar', 'role'],
+                as: "to_user",
+            }
 
-            ],
-            distinct: true
+        ],
+        distinct: true
+    })
+    var newlist = [];
+    for (let i = 0; i < rows.length; i++) {
+        var temp = rows[i].get({
+            plain: true,
         })
-        var newlist = [];
-        for (let i = 0; i < rows.length; i++) {
-            var temp = rows[i].get({
-                plain: true,
+        temp.isStar = false
+        if (temp.huifu.length) {
+            temp.huifu.forEach(item => {
+                item.isStar = false
             })
-            temp.isStar = false
-            if (temp.huifu.length) {
-                temp.huifu.forEach(item => {
-                    item.isStar = false
-                })
-            }
         }
-        for (let i = 0; i < rows.length; i++) {
-            var temp = rows[i].get({
-                plain: true,
-            })
-            if (temp.stars.length) {
-                temp.stars.forEach(item => {
-                    item.from_user_id
-                })
-                temp.stars.forEach(item => {
-                    if (item.from_user_id == currentId) {
-                        temp.isStar = true
-                    }
-                })
-            } else {
-                temp.isStar = false
-            }
-            if (temp.huifu.length) {
-                temp.huifu.forEach(item2 => {
-                    item2.stars.forEach(item1 => {
-                        if (item1.from_user_id == currentId) {
-                            item2.isStar = true
-                        }
-                    })
-                })
-            }
-
-            newlist.push(temp)
-        }
-        rows = newlist
-        // res.json({ count, rows })
-        res.json({ count, rows, nowPage, pageSize, lastPage: Math.ceil(count / pageSize) })
     }
+    for (let i = 0; i < rows.length; i++) {
+        var temp = rows[i].get({
+            plain: true,
+        })
+        if (temp.stars.length) {
+            temp.stars.forEach(item => {
+                item.from_user_id
+            })
+            temp.stars.forEach(item => {
+                if (item.from_user_id == currentId) {
+                    temp.isStar = true
+                }
+            })
+        } else {
+            temp.isStar = false
+        }
+        if (temp.huifu.length) {
+            temp.huifu.forEach(item2 => {
+                item2.stars.forEach(item1 => {
+                    if (item1.from_user_id == currentId) {
+                        item2.isStar = true
+                    }
+                })
+            })
+        }
+
+        newlist.push(temp)
+    }
+    rows = newlist
+    res.json({ count, rows, childrenNowPage, childrenPageSize, childrenLastPage: Math.ceil(count / childrenPageSize) })
+    return
 
 })
+
+//父留言分页
+router.get('/fasdfads', async function (req, res) {
+    // var { article_id } = req.query
+    var currentId = userInfo.id || -2
+    let { article_id, childrenCommentId, childrenNowPage, childrenPageSize } = req.query
+    var { rows, count } = await Comment.findAndCountAll({
+        where: {
+            article_id,
+            to_commentid
+        },
+        offset: parseInt((childrenNowPage - 1) * childrenPageSize),
+        limit: parseInt(childrenPageSize),
+        include: [
+            {
+                where: {
+                    to_user_id: { [Op.ne]: -1 }
+                },
+                required: false,
+                model: Star,
+                include: [
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "from_user",
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "to_user",
+                    }
+                ]
+            },
+            {
+                order: [['createdAt', 'DESC']],
+                model: Comment,
+                as: "huifu",
+                offset: 0,
+                limit: 2,
+                include: [
+                    {
+                        model: Star,
+                        include: [
+                            {
+                                model: User,
+                                attributes: ['username', 'avatar', 'role'],
+                                as: "from_user",
+                            },
+                            {
+                                model: User,
+                                attributes: ['username', 'avatar', 'role'],
+                                as: "to_user",
+                            }
+                        ]
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "from_user",
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "to_user",
+                    }
+                ],
+            },
+            {
+                model: User,
+                attributes: ['username', 'avatar', 'role'],
+                as: "from_user",
+            },
+            {
+                model: User,
+                attributes: ['username', 'avatar', 'role'],
+                as: "to_user",
+            }
+
+        ],
+        distinct: true
+    })
+    var newlist = [];
+    for (let i = 0; i < rows.length; i++) {
+        var temp = rows[i].get({
+            plain: true,
+        })
+        temp.isStar = false
+        if (temp.huifu.length) {
+            temp.huifu.forEach(item => {
+                item.isStar = false
+            })
+        }
+    }
+    for (let i = 0; i < rows.length; i++) {
+        var temp = rows[i].get({
+            plain: true,
+        })
+        if (temp.stars.length) {
+            temp.stars.forEach(item => {
+                item.from_user_id
+            })
+            temp.stars.forEach(item => {
+                if (item.from_user_id == currentId) {
+                    temp.isStar = true
+                }
+            })
+        } else {
+            temp.isStar = false
+        }
+        if (temp.huifu.length) {
+            temp.huifu.forEach(item2 => {
+                item2.stars.forEach(item1 => {
+                    if (item1.from_user_id == currentId) {
+                        item2.isStar = true
+                    }
+                })
+            })
+        }
+
+        newlist.push(temp)
+    }
+    rows = newlist
+    res.json({ count, rows, childrenNowPage, childrenPageSize, childrenLastPage: Math.ceil(count / childrenPageSize) })
+    return
+
+})
+
+
 
 //所有文章留言列表
 router.get('/all', async function (req, res) {
@@ -467,10 +485,10 @@ router.post('/add', async function (req, res, next) {
         next({ code: 400, message: err.message })
         return
     }
-    var { article_id, from_userid, content, to_commentid, to_userid } = req.body
-    console.log(article_id, from_userid, content, to_commentid, to_userid)
+    var { article_id, from_user_id, content, to_commentid, to_user_id } = req.body
+    console.log(article_id, from_user_id, content, to_commentid, to_user_id)
     var add = await Comment.create({
-        article_id, from_userid, content, to_commentid, to_userid
+        article_id, from_user_id, content, to_commentid, to_user_id
     })
     res.status(200).json({ code: 1, add })
 

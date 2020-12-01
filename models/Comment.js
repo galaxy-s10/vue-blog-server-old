@@ -12,13 +12,13 @@ const Comment = sequelize.define(
         article_id: {
             type: Sequelize.INTEGER,
         },
-        from_userid: {
+        from_user_id: {
             type: Sequelize.INTEGER,
         },
-        to_commentid: {
+        to_comment_id: {
             type: Sequelize.INTEGER,
         },
-        to_userid: {
+        to_user_id: {
             type: Sequelize.INTEGER,
             allowNull: false
         },

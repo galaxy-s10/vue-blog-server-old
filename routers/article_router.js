@@ -143,7 +143,8 @@ router.get('/page', async function (req, res, next) {
                     model: Star,
                     where: {
                         to_user_id: -1
-                    }
+                    },
+                    required: false,
                 },
                 {
                     model: Comment,
