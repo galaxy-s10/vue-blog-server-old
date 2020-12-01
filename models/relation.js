@@ -52,7 +52,7 @@ Log.belongsTo(User, { foreignKey: 'user_id', targetKey: 'id' })
 
 Role.belongsTo(Role, { as: "p_role", foreignKey: 'p_id', sourceKey: 'id' })
 // Role.hasMany(Role, { as: "h_role", foreignKey: 'id', sourceKey: 'p_id' })
-Auth.hasMany(Auth, { foreignKey: 'id', sourceKey: 'p_id' })
+Auth.hasMany(Auth, { foreignKey: 'id', sourceKey: 'p_id' }) //??????
 
 // 点赞
 Star.belongsTo(Article, { foreignKey: "article_id", targetKey: "id" })

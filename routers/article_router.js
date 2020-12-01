@@ -8,6 +8,7 @@ var Tag = require('../models/Tag')
 var Comment = require('../models/Comment')
 var Star = require('../models/Star')
 var authJwt = require('../lib/authJwt');
+const userInfo = require('../lib/userInfo')
 
 // 判断权限
 // router.use((req, res, next) => {
@@ -140,6 +141,9 @@ router.get('/page', async function (req, res, next) {
             include: [
                 {
                     model: Star,
+                    where: {
+                        to_user_id: -1
+                    }
                 },
                 {
                     model: Comment,
@@ -206,19 +210,54 @@ router.delete('/del', async function (req, res, next) {
 //查找文章
 router.get('/find', async function (req, res) {
     var { id, title } = req.query
+    var currentId = userInfo.id || -2
     // 查询某篇文章，点击量+1
     if (id) {
         var list = await Article.findAndCountAll({
+            where: {
+                id
+            },
             include: [
                 {
                     model: Tag,
                     through: { attributes: [] },
-                }
+                },
+                {
+                    where: {
+                        to_user_id: -1
+                    },
+                    /* 
+                        sequelize默认是左外连接，如果你有条件，它会给你变成内连接
+                        。这么做是有道理的，因为情况只返回内外条件都满足的数据。
+                        为了能够保持外连接，需要用到required属性， 只需要把写上required: false属性即可。
+                    */
+                    //不加：required:fasld：INNER JOIN `star` AS `stars` ON `article`.`id` = `stars`.`article_id` AND `stars`.`to_user_id` = - 1
+                    //加：required:fasld： LEFT OUTER JOIN `star` AS `stars` ON `article`.`id` = `stars`.`article_id` AND `stars`.`to_user_id` = - 1
+                    required: false,
+                    model: Star,
+
+                },
             ],
-            where: {
-                id
-            }
+
         })
+
+        var newlist = []
+        for (let i = 0; i < list.rows.length; i++) {
+            var temp = list.rows[i].get({
+                plain: true,
+            })
+            temp.isStar = false
+            if (temp.stars.length) {
+                temp.stars.forEach(item => {
+                    if (item.from_user_id == currentId) {
+                        temp.isStar = true
+                    }
+                })
+            }
+            newlist.push(temp)
+        }
+        list.rows = newlist
+
         Article.update(
             {
                 click: Sequelize.literal('`click` +1')
