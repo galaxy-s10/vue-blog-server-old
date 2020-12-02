@@ -36,7 +36,7 @@ const validateComment = Joi.object({
     article_id: Joi.number().required(),
     from_user_id: Joi.number().required(),
     content: Joi.string().min(3).max(200).required(),
-    to_commentid: Joi.number().required(),
+    to_comment_id: Joi.number().required(),
     to_user_id: Joi.number().required(),
 }).xor('id')
 
@@ -59,28 +59,9 @@ router.get('/', async function (req, res) {
         limit: parseInt(pageSize),
         include: [
             {
-                where: {
-                    to_user_id: { [Op.ne]: -1 },
-                },
-                required: false,
-                model: Star,
-                include: [
-                    {
-                        model: User,
-                        attributes: ['username', 'avatar', 'role'],
-                        as: "from_user",
-                    },
-                    {
-                        model: User,
-                        attributes: ['username', 'avatar', 'role'],
-                        as: "to_user",
-                    }
-                ]
-            },
-            {
-                // order: [
-                //     ['createdAt', 'asc'],
-                // ],
+                order: [
+                    ['createdAt', 'DESC'],
+                ],
                 model: Comment,
                 required: false,
                 as: "huifu",
@@ -89,6 +70,7 @@ router.get('/', async function (req, res) {
                 include: [
                     {
                         model: Star,
+                        required: false,
                         include: [
                             {
                                 model: User,
@@ -123,12 +105,31 @@ router.get('/', async function (req, res) {
                 model: User,
                 attributes: ['username', 'avatar', 'role'],
                 as: "to_user",
-            }
+            },
+            {
+                where: {
+                    to_user_id: { [Op.ne]: -1 },
+                },
+                required: false,
+                model: Star,
+                include: [
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "from_user",
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "to_user",
+                    }
+                ]
+            },
 
         ],
         distinct: true
     })
-    // res.json({count,rows})
+    // res.json({ count, rows })
     // return
     var newlist = [];
     for (let i = 0; i < rows.length; i++) {
@@ -184,7 +185,7 @@ router.get('/childrenPage', async function (req, res) {
             article_id,
             to_comment_id: childrenCommentId
         },
-        // order: [['createdAt', 'DESC']],
+        order: [['createdAt', 'DESC']],
         offset: parseInt((childrenNowPage - 1) * childrenPageSize),
         limit: parseInt(childrenPageSize),
         include: [
@@ -240,7 +241,7 @@ router.get('/childrenPage', async function (req, res) {
         }
     }
     rows = newlist
-    res.json({ count, rows, childrenNowPage: parseInt(childrenNowPage), childrenPageSize: parseInt(childrenPageSize), childrenLastPage: Math.ceil(count / childrenPageSize) })
+    res.json({ count, rows, to_comment_id: parseInt(childrenCommentId), childrenNowPage: parseInt(childrenNowPage), childrenPageSize: parseInt(childrenPageSize), childrenLastPage: Math.ceil(count / childrenPageSize) })
     return
 
 })
@@ -253,7 +254,7 @@ router.get('/fasdfads', async function (req, res) {
     var { rows, count } = await Comment.findAndCountAll({
         where: {
             article_id,
-            to_commentid
+            to_comment_id
         },
         offset: parseInt((childrenNowPage - 1) * childrenPageSize),
         limit: parseInt(childrenPageSize),
@@ -379,7 +380,7 @@ router.get('/all', async function (req, res) {
         where: {
             article_id: { [Op.ne]: -1 }
         },
-        // attributes: ['article_id','content','to_commentid'],
+        // attributes: ['article_id','content','to_comment_id'],
         include: [
             {
                 model: Article,
@@ -409,15 +410,15 @@ router.get('/all', async function (req, res) {
         var list = rows[i].get({
             plain: true,
         })
-        // 如果newrows里有to_commentid,则把这条数据插入它的父级
+        // 如果newrows里有to_comment_id,则把这条数据插入它的父级
         var child = []
         for (var j = 0; j < rows.length; j++) {
-            if (rows[j].to_commentid == list.id) {
+            if (rows[j].to_comment_id == list.id) {
                 child.push(rows[j])
             }
         }
         list.children = child
-        if (rows[i].to_commentid == -1) {
+        if (rows[i].to_comment_id == -1) {
             lists.push(list)
         }
     }
@@ -434,10 +435,10 @@ router.post('/add', async function (req, res, next) {
         next({ code: 400, message: err.message })
         return
     }
-    var { article_id, from_user_id, content, to_commentid, to_user_id } = req.body
-    console.log(article_id, from_user_id, content, to_commentid, to_user_id)
+    var { article_id, from_user_id, content, to_comment_id, to_user_id } = req.body
+    console.log(article_id, from_user_id, content, to_comment_id, to_user_id)
     var add = await Comment.create({
-        article_id, from_user_id, content, to_commentid, to_user_id
+        article_id, from_user_id, content, to_comment_id, to_user_id
     })
     res.status(200).json({ code: 1, add })
 

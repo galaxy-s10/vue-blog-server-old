@@ -75,4 +75,40 @@ router.get('/articleStar', async function (req, res) {
     res.status(200).json({ code: 200, result })
 })
 
+// 给文章点赞
+router.post('/starForArticle', async function (req, res) {
+    var { article_id, from_user_id } = req.body
+    var result = await Star.create({
+        article_id, from_user_id
+    })
+    res.status(200).json({ code: 200, result, message: "点赞成功~" })
+})
+
+// 给文章取消点赞
+router.delete('/delStarForArticle', async function (req, res) {
+    var { article_id, from_user_id } = req.body
+    var result = await Star.destroy({
+        where: { article_id, from_user_id }
+    })
+    res.status(200).json({ code: 200, result, message: "已取消点赞~" })
+})
+
+// 给文章/留言板下的评论点赞
+router.post('/starForComment', async function (req, res) {
+    var { article_id, comment_id, from_user_id, to_user_id } = req.body
+    var result = await Star.create({
+        article_id, comment_id, from_user_id, to_user_id
+    })
+    res.status(200).json({ code: 200, result, message: "点赞成功~" })
+})
+
+// 给文章/留言板下的评论取消点赞
+router.delete('/starForComment', async function (req, res) {
+    var { article_id, comment_id, from_user_id, to_user_id } = req.body
+    var result = await Star.destroy({
+        where: { article_id, comment_id, from_user_id, to_user_id }
+    })
+    res.status(200).json({ code: 200, result, message: "已取消点赞~" })
+})
+
 module.exports = router
