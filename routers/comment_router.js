@@ -49,16 +49,18 @@ router.get('/', async function (req, res) {
     var { count, rows } = await Comment.findAndCountAll({
         where: {
             article_id,
-            to_comment_id: -1
+            to_comment_id: -1,
         },
         required: false,
-        order: [['createdAt', 'DESC']],
+        order: [
+            ['createdAt', 'DESC'],
+        ],
         offset: parseInt((nowPage - 1) * pageSize),
         limit: parseInt(pageSize),
         include: [
             {
                 where: {
-                    to_user_id: { [Op.ne]: -1 }
+                    to_user_id: { [Op.ne]: -1 },
                 },
                 required: false,
                 model: Star,
@@ -76,9 +78,11 @@ router.get('/', async function (req, res) {
                 ]
             },
             {
-                // where: { to_comment_id: -1 },
-                // order: [['createdAt', 'DESC']],
+                // order: [
+                //     ['createdAt', 'asc'],
+                // ],
                 model: Comment,
+                required: false,
                 as: "huifu",
                 offset: parseInt((childrenNowPage - 1) * childrenPageSize),
                 limit: parseInt(childrenPageSize),
@@ -175,11 +179,12 @@ router.get('/childrenPage', async function (req, res) {
     // var { article_id } = req.query
     var currentId = userInfo.id || -2
     let { article_id, childrenCommentId, childrenNowPage, childrenPageSize } = req.query
-    var { rows, count } = await Comment.findAndCountAll({
+    var { count, rows } = await Comment.findAndCountAll({
         where: {
             article_id,
-            to_commentid
+            to_comment_id: childrenCommentId
         },
+        // order: [['createdAt', 'DESC']],
         offset: parseInt((childrenNowPage - 1) * childrenPageSize),
         limit: parseInt(childrenPageSize),
         include: [
@@ -203,40 +208,6 @@ router.get('/childrenPage', async function (req, res) {
                 ]
             },
             {
-                order: [['createdAt', 'DESC']],
-                model: Comment,
-                as: "huifu",
-                offset: 0,
-                limit: 2,
-                include: [
-                    {
-                        model: Star,
-                        include: [
-                            {
-                                model: User,
-                                attributes: ['username', 'avatar', 'role'],
-                                as: "from_user",
-                            },
-                            {
-                                model: User,
-                                attributes: ['username', 'avatar', 'role'],
-                                as: "to_user",
-                            }
-                        ]
-                    },
-                    {
-                        model: User,
-                        attributes: ['username', 'avatar', 'role'],
-                        as: "from_user",
-                    },
-                    {
-                        model: User,
-                        attributes: ['username', 'avatar', 'role'],
-                        as: "to_user",
-                    }
-                ],
-            },
-            {
                 model: User,
                 attributes: ['username', 'avatar', 'role'],
                 as: "from_user",
@@ -256,42 +227,20 @@ router.get('/childrenPage', async function (req, res) {
             plain: true,
         })
         temp.isStar = false
-        if (temp.huifu.length) {
-            temp.huifu.forEach(item => {
-                item.isStar = false
-            })
-        }
+        newlist.push(temp)
     }
-    for (let i = 0; i < rows.length; i++) {
-        var temp = rows[i].get({
-            plain: true,
-        })
+    for (let i = 0; i < newlist.length; i++) {
+        var temp = newlist[i]
         if (temp.stars.length) {
-            temp.stars.forEach(item => {
-                item.from_user_id
-            })
             temp.stars.forEach(item => {
                 if (item.from_user_id == currentId) {
                     temp.isStar = true
                 }
             })
-        } else {
-            temp.isStar = false
         }
-        if (temp.huifu.length) {
-            temp.huifu.forEach(item2 => {
-                item2.stars.forEach(item1 => {
-                    if (item1.from_user_id == currentId) {
-                        item2.isStar = true
-                    }
-                })
-            })
-        }
-
-        newlist.push(temp)
     }
     rows = newlist
-    res.json({ count, rows, childrenNowPage, childrenPageSize, childrenLastPage: Math.ceil(count / childrenPageSize) })
+    res.json({ count, rows, childrenNowPage: parseInt(childrenNowPage), childrenPageSize: parseInt(childrenPageSize), childrenLastPage: Math.ceil(count / childrenPageSize) })
     return
 
 })
