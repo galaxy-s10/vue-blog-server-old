@@ -8,6 +8,8 @@ const Auth = require('../models/Auth')
 const User_role = require('../models/User_role')
 const Role_auth = require('../models/Role_auth')
 const Star = require('../models/Star')
+const permission = require('../lib/permission')
+const userInfo = require('../lib/userInfo')
 
 // 判断权限
 // router.use('/', (req, res, next) => {
@@ -168,10 +170,15 @@ router.get('/getUserAuth', async function (req, res) {
 
 
 // 给某个角色新增权限
-router.post('/addAuth', async function (req, res) {
+router.post('/addAuth', async function (req, res,next) {
     const { id, authList } = req.body
-    console.log(id, authList)
-    console.log('addAuthaddAuth')
+    let permissionResult = await permission(userInfo.id, 'ADD_AUTH')
+    console.log('permissionResultpermissionResult')
+    console.log(permissionResult)
+    if (permissionResult.code == 403) {
+        next(permissionResult)
+        return
+    }
     let find_role = await Role.findByPk(id)
     let bbb = await Auth.findAll({ where: { id: authList } })
     let ccc = find_role.setAuths(bbb)

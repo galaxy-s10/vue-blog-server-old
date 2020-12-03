@@ -41,7 +41,7 @@ const validateComment = Joi.object({
 }).xor('id')
 
 
-//留言板留言/单篇文章留言列表
+// 文章留言列表
 router.get('/', async function (req, res) {
     var currentId = userInfo.id || -2
     let { article_id, nowPage, pageSize, childrenNowPage, childrenPageSize } = req.query
@@ -175,7 +175,7 @@ router.get('/', async function (req, res) {
     res.json({ allCount: allCount.count, count, rows, nowPage: parseInt(nowPage), pageSize: parseInt(pageSize), lastPage: Math.ceil(count / pageSize) })
 })
 
-//子留言分页
+// 文章子留言分页
 router.get('/childrenPage', async function (req, res) {
     // var { article_id } = req.query
     var currentId = userInfo.id || -2
@@ -222,6 +222,7 @@ router.get('/childrenPage', async function (req, res) {
         ],
         distinct: true
     })
+
     var newlist = [];
     for (let i = 0; i < rows.length; i++) {
         var temp = rows[i].get({
@@ -245,6 +246,216 @@ router.get('/childrenPage', async function (req, res) {
     return
 
 })
+
+
+// 留言板留言列表
+router.get('/comment', async function (req, res) {
+    var currentId = userInfo.id || -2
+    let { article_id, nowPage, pageSize, childrenNowPage, childrenPageSize } = req.query
+    var allCount = await Comment.findAndCountAll({ where: { article_id } })
+    var { count, rows } = await Comment.findAndCountAll({
+        where: {
+            article_id,
+        },
+        required: false,
+        order: [
+            ['createdAt', 'DESC'],
+        ],
+        offset: parseInt((nowPage - 1) * pageSize),
+        limit: parseInt(pageSize),
+        include: [
+            {
+                order: [
+                    ['createdAt', 'DESC'],
+                ],
+                model: Comment,
+                required: false,
+                as: "huifu",
+                offset: parseInt((childrenNowPage - 1) * childrenPageSize),
+                limit: parseInt(childrenPageSize),
+                include: [
+                    {
+                        model: Star,
+                        required: false,
+                        include: [
+                            {
+                                model: User,
+                                attributes: ['username', 'avatar', 'role'],
+                                as: "from_user",
+                            },
+                            {
+                                model: User,
+                                attributes: ['username', 'avatar', 'role'],
+                                as: "to_user",
+                            }
+                        ]
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "from_user",
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "to_user",
+                    }
+                ],
+            },
+            {
+                model: User,
+                attributes: ['username', 'avatar', 'role'],
+                as: "from_user",
+            },
+            {
+                model: User,
+                attributes: ['username', 'avatar', 'role'],
+                as: "to_user",
+            },
+            {
+                where: {
+                    to_user_id: { [Op.ne]: -1 },
+                },
+                required: false,
+                model: Star,
+                include: [
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "from_user",
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "to_user",
+                    }
+                ]
+            },
+
+        ],
+        distinct: true
+    })
+    // res.json({ count, rows })
+    // return
+    var newlist = [];
+    for (let i = 0; i < rows.length; i++) {
+        var temp = rows[i].get({
+            plain: true,
+        })
+        temp.isStar = false
+        if (temp.huifu.length) {
+            temp.huifu.forEach(item => {
+                item.isStar = false
+            })
+        }
+    }
+    for (let i = 0; i < rows.length; i++) {
+        var temp = rows[i].get({
+            plain: true,
+        })
+        if (temp.stars.length) {
+            temp.stars.forEach(item => {
+                item.from_user_id
+            })
+            temp.stars.forEach(item => {
+                if (item.from_user_id == currentId) {
+                    temp.isStar = true
+                }
+            })
+        } else {
+            temp.isStar = false
+        }
+        if (temp.huifu.length) {
+            temp.huifu.forEach(item2 => {
+                item2.stars.forEach(item1 => {
+                    if (item1.from_user_id == currentId) {
+                        item2.isStar = true
+                    }
+                })
+            })
+        }
+
+        newlist.push(temp)
+    }
+    rows = newlist
+    res.json({ allCount: allCount.count, count, rows, nowPage: parseInt(nowPage), pageSize: parseInt(pageSize), lastPage: Math.ceil(count / pageSize) })
+})
+
+
+
+// 留言板子留言分页
+router.get('/commentChildrenPage', async function (req, res) {
+    var currentId = userInfo.id || -2
+    let { childrenCommentId, childrenNowPage, childrenPageSize } = req.query
+    var { count, rows } = await Comment.findAndCountAll({
+        where: {
+            article_id: -1,
+            to_comment_id: childrenCommentId
+        },
+        order: [['createdAt', 'DESC']],
+        offset: parseInt((childrenNowPage - 1) * childrenPageSize),
+        limit: parseInt(childrenPageSize),
+        include: [
+            {
+                where: {
+                    to_user_id: { [Op.ne]: -1 }
+                },
+                required: false,
+                model: Star,
+                include: [
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "from_user",
+                    },
+                    {
+                        model: User,
+                        attributes: ['username', 'avatar', 'role'],
+                        as: "to_user",
+                    }
+                ]
+            },
+            {
+                model: User,
+                attributes: ['username', 'avatar', 'role'],
+                as: "from_user",
+            },
+            {
+                model: User,
+                attributes: ['username', 'avatar', 'role'],
+                as: "to_user",
+            }
+
+        ],
+        distinct: true
+    })
+
+    var newlist = [];
+    for (let i = 0; i < rows.length; i++) {
+        var temp = rows[i].get({
+            plain: true,
+        })
+        temp.isStar = false
+        newlist.push(temp)
+    }
+    for (let i = 0; i < newlist.length; i++) {
+        var temp = newlist[i]
+        if (temp.stars.length) {
+            temp.stars.forEach(item => {
+                if (item.from_user_id == currentId) {
+                    temp.isStar = true
+                }
+            })
+        }
+    }
+    rows = newlist
+    res.json({ count, rows, to_comment_id: parseInt(childrenCommentId), childrenNowPage: parseInt(childrenNowPage), childrenPageSize: parseInt(childrenPageSize), childrenLastPage: Math.ceil(count / childrenPageSize) })
+    return
+
+})
+
+
+
 
 //父留言分页
 router.get('/fasdfads', async function (req, res) {

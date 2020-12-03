@@ -103,7 +103,7 @@ router.post('/starForComment', async function (req, res) {
 })
 
 // 给文章/留言板下的评论取消点赞
-router.delete('/starForComment', async function (req, res) {
+router.delete('/delstarForComment', async function (req, res) {
     var { article_id, comment_id, from_user_id, to_user_id } = req.body
     var result = await Star.destroy({
         where: { article_id, comment_id, from_user_id, to_user_id }

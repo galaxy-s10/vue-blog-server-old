@@ -7,8 +7,8 @@ var Role = require('../models/Role')
 var Auth = require('../models/Auth')
 var User_role = require('../models/User_role')
 var Role_auth = require('../models/Role_auth')
-const { query } = require('express')
-
+const permission = require('../lib/permission')
+const userInfo = require('../lib/userInfo')
 // 判断权限
 // router.use('/', async (req, res, next) => {
 //     console.log('判断权限');
@@ -106,9 +106,16 @@ router.get('/findParentAuth', async function (req, res) {
 })
 
 // 修改某个权限
-router.put('/editAuth', async function (req, res) {
+router.put('/editAuth', async function (req, res,next) {
     let { id, p_id, auth_name, auth_description } = req.body
     console.log(id, p_id, auth_name, auth_description)
+    let permissionResult = await permission(userInfo.id, 'UPDATE_AUTH')
+    console.log('permissionResultpermissionResult')
+    console.log(permissionResult)
+    if (permissionResult.code == 403) {
+        next(permissionResult)
+        return
+    }
     let result = await Auth.update(
         {
             p_id, auth_name, auth_description,
@@ -124,8 +131,15 @@ router.put('/editAuth', async function (req, res) {
 })
 
 // 新增权限
-router.post('/addAuth', async function (req, res) {
+router.post('/addAuth', async function (req, res,next) {
     let { id, p_id, auth_name, auth_description } = req.body
+    let permissionResult = await permission(userInfo.id, 'ADD_AUTH')
+    console.log('permissionResultpermissionResult')
+    console.log(permissionResult)
+    if (permissionResult.code == 403) {
+        next(permissionResult)
+        return
+    }
     let result = Auth.create(
         {
             p_id, auth_name, auth_description,
@@ -137,8 +151,15 @@ router.post('/addAuth', async function (req, res) {
 })
 
 // 删除权限
-router.delete('/delAuth', async function (req, res) {
+router.delete('/delAuth', async function (req, res,next) {
     let { id } = req.body
+    let permissionResult = await permission(userInfo.id, 'DELETE_AUTH')
+    console.log('permissionResultpermissionResult')
+    console.log(permissionResult)
+    if (permissionResult.code == 403) {
+        next(permissionResult)
+        return
+    }
     let result = Auth.destroy(
         {
             where: { id },

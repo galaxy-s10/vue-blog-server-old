@@ -171,7 +171,6 @@ router.delete('/deleteRole', async function (req, res, next) {
     }
     let delelte_res = await find_role.setUsers([])
     await find_role.destroy()
-    res.status(200).json(delelte_res)
     res.status(200).json({ code: 200, delelte_res, message: "删除角色成功!" })
 })
 
