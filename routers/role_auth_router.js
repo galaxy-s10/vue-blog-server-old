@@ -122,6 +122,7 @@ router.get('/getUserRole', async function (req, res) {
         include: [
             {
                 model: User,
+                attributes: { exclude: ['password', 'token'] },
             },
             {
                 model: Role
@@ -170,7 +171,7 @@ router.get('/getUserAuth', async function (req, res) {
 
 
 // 给某个角色新增权限
-router.post('/addAuth', async function (req, res,next) {
+router.post('/addAuth', async function (req, res, next) {
     const { id, authList } = req.body
     let permissionResult = await permission(userInfo.id, 'ADD_AUTH')
     console.log('permissionResultpermissionResult')

@@ -74,36 +74,36 @@ router.get('/', async function (req, res) {
                         include: [
                             {
                                 model: User,
-                                attributes: ['username', 'avatar', 'role'],
+                                attributes: { exclude: ['password', 'token'] },
                                 as: "from_user",
                             },
                             {
                                 model: User,
-                                attributes: ['username', 'avatar', 'role'],
+                                attributes: { exclude: ['password', 'token'] },
                                 as: "to_user",
                             }
                         ]
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "from_user",
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "to_user",
                     }
                 ],
             },
             {
                 model: User,
-                attributes: ['username', 'avatar', 'role'],
+                attributes: { exclude: ['password', 'token'] },
                 as: "from_user",
             },
             {
                 model: User,
-                attributes: ['username', 'avatar', 'role'],
+                attributes: { exclude: ['password', 'token'] },
                 as: "to_user",
             },
             {
@@ -115,12 +115,12 @@ router.get('/', async function (req, res) {
                 include: [
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "from_user",
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "to_user",
                     }
                 ]
@@ -198,24 +198,24 @@ router.get('/childrenPage', async function (req, res) {
                 include: [
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "from_user",
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "to_user",
                     }
                 ]
             },
             {
                 model: User,
-                attributes: ['username', 'avatar', 'role'],
+                attributes: { exclude: ['password', 'token'] },
                 as: "from_user",
             },
             {
                 model: User,
-                attributes: ['username', 'avatar', 'role'],
+                attributes: { exclude: ['password', 'token'] },
                 as: "to_user",
             }
 
@@ -280,36 +280,36 @@ router.get('/comment', async function (req, res) {
                         include: [
                             {
                                 model: User,
-                                attributes: ['username', 'avatar', 'role'],
+                                attributes: { exclude: ['password', 'token'] },
                                 as: "from_user",
                             },
                             {
                                 model: User,
-                                attributes: ['username', 'avatar', 'role'],
+                                attributes: { exclude: ['password', 'token'] },
                                 as: "to_user",
                             }
                         ]
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "from_user",
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "to_user",
                     }
                 ],
             },
             {
                 model: User,
-                attributes: ['username', 'avatar', 'role'],
+                attributes: { exclude: ['password', 'token'] },
                 as: "from_user",
             },
             {
                 model: User,
-                attributes: ['username', 'avatar', 'role'],
+                attributes: { exclude: ['password', 'token'] },
                 as: "to_user",
             },
             {
@@ -321,12 +321,12 @@ router.get('/comment', async function (req, res) {
                 include: [
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "from_user",
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "to_user",
                     }
                 ]
@@ -601,11 +601,11 @@ router.get('/all', async function (req, res) {
                 // model: Article,
                 // attributes: ['title'],
                 model: User,
-                attributes: ['username', 'avatar', 'role'],
+                attributes: { exclude: ['password', 'token'] },
                 as: "from_user",
             },
             {
-                attributes: ['username', 'avatar', 'role'],
+                attributes: { exclude: ['password', 'token'] },
                 model: User,
                 as: "to_user",
             }

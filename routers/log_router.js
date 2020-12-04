@@ -43,6 +43,7 @@ router.get('/list', async function (req, res) {
         include: [
             {
                 model: User,
+                attributes: { exclude: ['password', 'token'] },
             }
         ],
         limit: limit,

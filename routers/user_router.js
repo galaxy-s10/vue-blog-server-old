@@ -9,6 +9,7 @@ const userInfo = require('../lib/userInfo')
 const permission = require('../lib/permission')
 const MD5 = require('crypto-js/md5');
 const authJwt = require('../lib/authJwt');
+const User_role = require('../models/User_role');
 
 // 判断权限
 // router.use(async (req, res, next) => {
@@ -37,16 +38,16 @@ const validateUser = Joi.object({
     ],
     username: Joi.string().min(3).max(10).required(),
     password: Joi.string().pattern(new RegExp(/^\w{6,12}$/)).required(),
-    role: [
-        'user',
-        'admin'
-    ],
+    // role: [
+    //     'user',
+    //     'admin'
+    // ],
     avatar: [
         null,
         Joi.string().max(150)
     ],
     title: Joi.string().min(3).max(20),
-}).xor('id').xor('role').xor('avatar')
+}).xor('id').xor('avatar')
 
 
 // 注册用户
@@ -77,17 +78,20 @@ router.post('/add', async function (req, res, next) {
             } else if (jwt_res.code == 200 && jwt_res.user.role == 'admin') {
                 const userinfo = await User.create({
                     attributes: { exclude: ['password'] },
-                    username, password, role, avatar, title
+                    username, passwor, avatar, title
                 })
                 res.json({ code: 1 })
                 return
             }
         } else {
-            const userinfo = await User.create({
+            const userInfo = await User.create({
                 attributes: { exclude: ['password'] },
-                username, password, role, avatar, title
+                username, password, avatar, title
             })
-            res.json({ code: 1 })
+            const userRole = await User_role.create({
+                user_id: userInfo.id, role_id: 6
+            })
+            res.json({ code: 200, userInfo, message: "注册成功！" })
             return
         }
 

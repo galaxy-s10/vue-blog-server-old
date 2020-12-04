@@ -29,9 +29,6 @@ const Article = sequelize.define(
         content: {
             type: Sequelize.STRING,
         },
-        date: {
-            type: Sequelize.DATE,
-        },
         click: {
             type: Sequelize.INTEGER,
             defaultValue: 0

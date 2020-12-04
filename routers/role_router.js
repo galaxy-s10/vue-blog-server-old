@@ -112,7 +112,7 @@ router.put('/editUserRole', async function (req, res, next) {
     let update_roles = await Role.findAll({ where: { id: roles } })
     let find_user = await User.findByPk(id)
     let result = await find_user.setRoles(update_roles)
-    res.status(200).json({ code: 200, result })
+    res.status(200).json({ code: 200, result, message: "更新用户角色成功！" })
 })
 
 // 修改某个角色的权限
@@ -131,7 +131,7 @@ router.put('/editRoleAuth', async function (req, res, next) {
     let update_auths = await Auth.findAll({ where: { id: auths } })
     let find_role = await Role.findByPk(id)
     let result = await find_role.setAuths(update_auths)
-    res.status(200).json({ code: 200, result })
+    res.status(200).json({ code: 200, result, message: "修改角色权限成功!" })
 })
 
 // 添加角色
