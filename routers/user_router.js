@@ -4,6 +4,7 @@ const Joi = require('@hapi/joi')
 const jwt = require('jsonwebtoken');
 const router = express.Router()
 const User = require('../models/User')
+const Role = require('../models/Role')
 const userInfo = require('../lib/userInfo')
 const permission = require('../lib/permission')
 const MD5 = require('crypto-js/md5');
