@@ -96,6 +96,36 @@ router.put('/aaa', async function (req, res, next) {
 })
 
 
+// 查询某个角色的父级
+router.get('/findParentRole', async function (req, res) {
+    // 查询当前角色的父级p_id
+    let { p_id } = await Role.findOne({
+        attributes: ["p_id"],
+        where: { id: req.query.id }
+    })
+    // 查询父级的p_id
+    let result = await Role.findOne({
+        attributes: ["p_id"],
+        where: { id: p_id }
+    })
+    let list
+    if (result) {
+        // 查询所有角色的p_id是父级p_id的数据
+        list = await Role.findAndCountAll({
+            where: { p_id: result.p_id }
+        })
+    } else {
+        // 查询所有角色的p_id是父级p_id的数据
+        list = await Role.findAndCountAll({
+            where: { p_id: 0 }
+        })
+    }
+    res.status(200).json({
+        code: 200, list, message: "查询该角色父级成功"
+    })
+})
+
+
 // 更新某个用户的角色
 router.put('/editUserRole', async function (req, res, next) {
     let { id, roles } = req.body
@@ -126,10 +156,11 @@ router.put('/editRoleAuth', async function (req, res, next) {
         next(permissionResult)
         return
     }
-    let { id, auths } = req.body
+    let { id, auths, role_name, role_description } = req.body
     console.log(id, auths);
     let update_auths = await Auth.findAll({ where: { id: auths } })
     let find_role = await Role.findByPk(id)
+    let update_role = await find_role.update({ role_name, role_description })
     let result = await find_role.setAuths(update_auths)
     res.status(200).json({ code: 200, result, message: "修改角色权限成功!" })
 })
