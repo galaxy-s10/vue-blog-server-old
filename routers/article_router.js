@@ -291,6 +291,7 @@ router.get('/find', async function (req, res) {
 
 })
 
+console.log('test')
 // 修改文章
 router.put('/edit', async function (req, res, next) {
     try {
