@@ -90,10 +90,38 @@ router.get('/typelist', async function (req, res, next) {
 
 //文章分页
 router.get('/page', async function (req, res, next) {
-    var { ordername, orderby, type, nowPage, pageSize } = req.query
-    console.log(ordername, orderby, type, nowPage, pageSize)
+    var { ordername, orderby, type, nowPage, pageSize, is_admin } = req.query
+    console.log(ordername, orderby, type, nowPage, pageSize, is_admin)
     var offset = parseInt((nowPage - 1) * pageSize)
     var limit = parseInt(pageSize)
+    if (is_admin) {
+        var pagelist = await Article.findAndCountAll({
+            // order: [['createdAt', 'desc']],
+            limit: limit,
+            offset: offset,
+            include: [
+                {
+                    model: Star,
+                    where: {
+                        to_user_id: -1
+                    },
+                    required: false,
+                },
+                {
+                    model: Comment,
+                },
+                {
+                    model: Tag,
+                    through: { attributes: [] },
+                },
+            ],
+            distinct: true,
+        })
+        res.status(200).json({
+            pagelist
+        })
+        return
+    }
     if (type) {
         var pagelist = await Article.findAndCountAll({
             where: { type, status: 1 },
@@ -156,7 +184,7 @@ router.get('/page', async function (req, res, next) {
             distinct: true,
         })
     }
-    res.json({
+    res.status(200).json({
         pagelist
     })
 })
