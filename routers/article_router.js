@@ -294,28 +294,28 @@ router.get('/find', async function (req, res) {
 console.log('test')
 // 修改文章
 router.put('/edit', async function (req, res, next) {
-    try {
-        await validateArticle.validateAsync(req.body, { convert: false })
-    } catch (err) {
-        next({ code: 400, message: err.message })
-        return
-    }
-    const { id, title, type, tagList, img, content, date, click } = req.body
+    // try {
+    //     await validateArticle.validateAsync(req.body, { convert: false })
+    // } catch (err) {
+    //     next({ code: 400, message: err.message })
+    //     return
+    // }
+    const { id, title, type, img, is_comment, status, content, click, tags } = req.body
     const newtags = []
-    tagList.forEach((item) => {
+    tags.forEach((item) => {
         newtags.push(item.id)
     })
-    const jwt_res = authJwt(req)
-    if (jwt_res.user.role == 'admin') {
-        let update_tags = await Tag.findAll({ where: { id: newtags } })
-        let find_article = await Article.findByPk(id)
-        let update_article = await find_article.update({ title, type, img, content, date, click })
-        let update_article_result = await find_article.setTags(update_tags)
-        res.status(200).json({ code: 1, update_article_result })
-    } else {
-        next(jwt_res)
-        return
-    }
+    // const jwt_res = authJwt(req)
+    // if (jwt_res.user.role == 'admin') {
+    let update_tags = await Tag.findAll({ where: { id: newtags } })
+    let find_article = await Article.findByPk(id)
+    let update_article = await find_article.update({ title, type, img, is_comment, status, content, click })
+    let update_article_result = await find_article.setTags(update_tags)
+    res.status(200).json({ code: 1, update_article_result, message: '修改文章成功！' })
+    // } else {
+    //     next(jwt_res)
+    //     return
+    // }
 
 })
 

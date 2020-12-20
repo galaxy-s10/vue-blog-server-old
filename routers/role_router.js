@@ -125,6 +125,21 @@ router.get('/findParentRole', async function (req, res) {
     })
 })
 
+// 查询某个角色的平行父级
+router.get('/findBrotherRole', async function (req, res) {
+    // 查询当前角色的父级p_id
+    let { p_id } = await Role.findOne({
+        attributes: ["p_id"],
+        where: { id: req.query.id }
+    })
+    let list = await Role.findAndCountAll({
+        where: { p_id }
+    })
+    res.status(200).json({
+        code: 200, list, message: "查询某个角色的平行父级成功"
+    })
+})
+
 
 // 更新某个用户的角色
 router.put('/editUserRole', async function (req, res, next) {
