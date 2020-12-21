@@ -24,7 +24,7 @@ const Article = sequelize.define(
         },
         img: {
             type: Sequelize.STRING(100),
-            defaultValue: '无'
+            defaultValue: null
         },
         content: {
             type: Sequelize.STRING,

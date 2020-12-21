@@ -191,27 +191,26 @@ router.get('/page', async function (req, res, next) {
 
 // 发表文章
 router.post('/add', async function (req, res, next) {
-    try {
-        await validateArticle.validateAsync(req.body, { convert: false })
-    } catch (err) {
-        next({ code: 400, message: err.message })
-        return
-    }
-    const { title, type, img, content, date, click, tagList } = req.body
+    // try {
+    //     await validateArticle.validateAsync(req.body, { convert: false })
+    // } catch (err) {
+    //     next({ code: 400, message: err.message })
+    //     return
+    // }
+    const { title, type, img, is_comment, status, content, click, tags } = req.body
     const jwt_res = authJwt(req)
-    if (jwt_res.user.role == 'admin') {
+    // if (jwt_res.user.role == 'admin') {
         let aaa = await Article.create({
-            title, type, img, content, date, click
+            title, type, img, is_comment, status, content, click
         })
-        let bbb = await Tag.findAll({ where: { id: tagList } })
-        let ccc = aaa.setTags(bbb)
-        res.status(200).json({
-            ccc
-        })
-    } else {
-        next(jwt_res)
-        return
-    }
+        // let bbb = await Tag.findAll({ where: { id: tagList } })
+        let ccc = aaa.setTags(tags)
+        res.status(200).json({ code: 200, ccc, message: '发表文章成功！' })
+
+    // } else {
+        // next(jwt_res)
+        // return
+    // }
 
 })
 
@@ -329,17 +328,17 @@ router.put('/edit', async function (req, res, next) {
     //     return
     // }
     const { id, title, type, img, is_comment, status, content, click, tags } = req.body
-    const newtags = []
-    tags.forEach((item) => {
-        newtags.push(item.id)
-    })
+    // const newtags = []
+    // tags.forEach((item) => {
+    //     newtags.push(item.id)
+    // })
     // const jwt_res = authJwt(req)
     // if (jwt_res.user.role == 'admin') {
-    let update_tags = await Tag.findAll({ where: { id: newtags } })
+    // let update_tags = await Tag.findAll({ where: { id: newtags } })
     let find_article = await Article.findByPk(id)
     let update_article = await find_article.update({ title, type, img, is_comment, status, content, click })
-    let update_article_result = await find_article.setTags(update_tags)
-    res.status(200).json({ code: 1, update_article_result, message: '修改文章成功！' })
+    let update_article_result = await find_article.setTags(tags)
+    res.status(200).json({ code: 200, update_article_result, message: '修改文章成功！' })
     // } else {
     //     next(jwt_res)
     //     return

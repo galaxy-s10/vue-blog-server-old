@@ -25,14 +25,14 @@ router.use((req, res, next) => {
 })
 
 // 判断参数
-const validateTag = Joi.object({
-    id: [
-        null,
-        Joi.number()
-    ],
-    name: Joi.string().min(3).max(20).required(),
-    color: Joi.string().max(50).required(),
-}).xor('id')
+// const validateTag = Joi.object({
+//     id: [
+//         null,
+//         Joi.number()
+//     ],
+//     name: Joi.string().min(3).max(20).required(),
+//     color: Joi.string().max(50).required(),
+// }).xor('id')
 
 // 获取标签
 router.get('/list', async function (req, res) {
@@ -63,6 +63,23 @@ router.get('/list', async function (req, res) {
     }
 
     res.json({ count, rows })
+})
+
+// 标签分页
+router.get('/tagPage', async function (req, res) {
+    var { nowPage, pageSize } = req.query
+    console.log('nowPage, pageSize')
+    console.log(req.query)
+    console.log(nowPage, pageSize)
+    var offset = parseInt((nowPage - 1) * pageSize)
+    var limit = parseInt(pageSize)
+    var { count, rows } = await Tag.findAndCountAll({
+        limit: limit,
+        offset: offset,
+        // 去重
+        distinct: true,
+    })
+    res.status(200).json({ count, rows, message: '查询标签分页成功！' })
 })
 
 // 标签文章分页
