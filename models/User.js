@@ -10,18 +10,24 @@ const User = sequelize.define(
             allowNull: false,
             autoIncrement: true
         },
-        username: Sequelize.STRING(20),
-        password: Sequelize.STRING(50),
+        username: {
+            type: Sequelize.STRING(20),
+            allowNull: false,
+        },
+        password: {
+            type: Sequelize.STRING(50),
+            allowNull: false,
+        },
         status: {
             type: Sequelize.INTEGER,
+            defaultValue: 1
         },
         avatar: {
             type: Sequelize.STRING(100),
-            defaultValue: null
         },
         title: {
-            type: Sequelize.STRING(20),
-            defaultValue: '无'
+            type: Sequelize.STRING(50),
+            defaultValue: '这个人很懒，什么也没有留下'
         },
         token: {
             type: Sequelize.STRING,

@@ -116,7 +116,7 @@ router.post('/login', async function (req, res, next) {
             }
         })
         if (userInfo) {
-            if (userInfo.status == 2) {
+            if (!userInfo.status) {
                 return next({ code: 403, token: null, message: '该账号已被禁用!' })
                 // res.status(403).json({ code: 403, token: null, message: '该账号已被禁用!' })
             }

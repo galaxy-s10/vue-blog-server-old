@@ -6,6 +6,8 @@ var router = express.Router()
 var Article = require('../models/Article')
 var Tag = require('../models/Tag')
 var Comment = require('../models/Comment')
+var User_article = require('../models/User_article')
+var User = require('../models/User')
 var Star = require('../models/Star')
 var authJwt = require('../lib/authJwt');
 const userInfo = require('../lib/userInfo')
@@ -108,6 +110,9 @@ router.get('/page', async function (req, res, next) {
                     required: false,
                 },
                 {
+                    model: User,
+                },
+                {
                     model: Comment,
                 },
                 {
@@ -129,6 +134,9 @@ router.get('/page', async function (req, res, next) {
             limit: limit,
             offset: offset,
             include: [
+                {
+                    model: User,
+                },
                 {
                     model: Comment,
                 },
@@ -152,9 +160,12 @@ router.get('/page', async function (req, res, next) {
             order: [[ordername, orderby]],
             limit: limit,
             offset: offset,
-            include: [{
-                model: Comment,
-            }],
+            include: [
+                {
+                    model: User,
+                }, {
+                    model: Comment,
+                }],
             // 去重
             distinct: true,
         })
@@ -166,6 +177,9 @@ router.get('/page', async function (req, res, next) {
             limit: limit,
             offset: offset,
             include: [
+                {
+                    model: User,
+                },
                 {
                     model: Star,
                     where: {
@@ -200,16 +214,16 @@ router.post('/add', async function (req, res, next) {
     const { title, type, img, is_comment, status, content, click, tags } = req.body
     const jwt_res = authJwt(req)
     // if (jwt_res.user.role == 'admin') {
-        let aaa = await Article.create({
-            title, type, img, is_comment, status, content, click
-        })
-        // let bbb = await Tag.findAll({ where: { id: tagList } })
-        let ccc = aaa.setTags(tags)
-        res.status(200).json({ code: 200, ccc, message: '发表文章成功！' })
+    let aaa = await Article.create({
+        title, type, img, is_comment, status, content, click
+    })
+    // let bbb = await Tag.findAll({ where: { id: tagList } })
+    let ccc = aaa.setTags(tags)
+    res.status(200).json({ code: 200, ccc, message: '发表文章成功！' })
 
     // } else {
-        // next(jwt_res)
-        // return
+    // next(jwt_res)
+    // return
     // }
 
 })

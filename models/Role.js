@@ -17,6 +17,7 @@ const Role = sequelize.define(
         },
         p_id: {
             type: Sequelize.INTEGER,
+            defaultValue: 0
         },
     },
     {

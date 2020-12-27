@@ -21,6 +21,10 @@ const Link = sequelize.define(
         url: {
             type: Sequelize.STRING,
         },
+        status: {
+            type: Sequelize.STRING,
+            defaultValue: 1
+        },
     },
     {
         freezeTableName: true

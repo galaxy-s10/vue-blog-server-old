@@ -20,7 +20,6 @@ const Comment = sequelize.define(
         },
         to_user_id: {
             type: Sequelize.INTEGER,
-            allowNull: false
         },
         content: {
             type: Sequelize.STRING,

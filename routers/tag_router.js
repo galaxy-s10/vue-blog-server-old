@@ -121,7 +121,7 @@ router.get('/page', async function (req, res) {
         distinct: true,
         where: { tag_id: id },
     })
-    res.status(200).json({ count, rows })
+    res.status(200).json({ count, rows,message:'获取标签文章分页成功！' })
 })
 
 // 修改标签

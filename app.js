@@ -42,6 +42,7 @@ let auth_router = require('./routers/auth_router')
 let role_auth_router = require('./routers/role_auth_router')
 let log_router = require('./routers/log_router')
 let star_router = require('./routers/star_router')
+let front_router = require('./routers/front_router')
 
 //转换时间格式
 function formateDate(datetime) {
@@ -105,6 +106,7 @@ app.use('/auth', auth_router)
 app.use('/roleauth', role_auth_router)
 app.use('/log', log_router)
 app.use('/star', star_router)
+app.use('/front', front_router)
 
 // 统一处理报错
 app.use('/', (err, req, res, next) => {
