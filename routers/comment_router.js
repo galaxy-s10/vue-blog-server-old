@@ -59,8 +59,13 @@ router.get('/', async function (req, res) {
         limit: parseInt(pageSize),
         include: [
             {
+                model: Comment,
+                // required: false,
+                as: "huifucount",
+            },
+            {
                 order: [
-                    ['createdAt', 'DESC'],
+                    ['createdAt', 'ASC'],
                 ],
                 model: Comment,
                 required: false,
@@ -185,7 +190,7 @@ router.get('/childrenPage', async function (req, res) {
             article_id,
             to_comment_id: childrenCommentId
         },
-        order: [['createdAt', 'DESC']],
+        order: [['createdAt', 'ASC']],
         offset: parseInt((childrenNowPage - 1) * childrenPageSize),
         limit: parseInt(childrenPageSize),
         include: [
@@ -222,7 +227,8 @@ router.get('/childrenPage', async function (req, res) {
         ],
         distinct: true
     })
-
+    // res.json({ count, rows, a:111})
+    // return
     var newlist = [];
     for (let i = 0; i < rows.length; i++) {
         var temp = rows[i].get({
@@ -255,9 +261,9 @@ router.get('/comment', async function (req, res) {
     var allCount = await Comment.findAndCountAll({ where: { article_id } })
     var { count, rows } = await Comment.findAndCountAll({
         where: {
-            article_id,
+            article_id, to_comment_id: -1, to_user_id: -1
         },
-        required: false,
+        // required: false,
         order: [
             ['createdAt', 'DESC'],
         ],
@@ -265,11 +271,16 @@ router.get('/comment', async function (req, res) {
         limit: parseInt(pageSize),
         include: [
             {
+                model: Comment,
+                // required: false,
+                as: "huifucount",
+            },
+            {
                 order: [
-                    ['createdAt', 'DESC'],
+                    ['createdAt', 'ASC'],
                 ],
                 model: Comment,
-                required: false,
+                // required: false,
                 as: "huifu",
                 offset: parseInt((childrenNowPage - 1) * childrenPageSize),
                 limit: parseInt(childrenPageSize),
@@ -392,7 +403,7 @@ router.get('/commentChildrenPage', async function (req, res) {
             article_id: -1,
             to_comment_id: childrenCommentId
         },
-        order: [['createdAt', 'DESC']],
+        order: [['createdAt', 'ASC']],
         offset: parseInt((childrenNowPage - 1) * childrenPageSize),
         limit: parseInt(childrenPageSize),
         include: [
@@ -405,31 +416,32 @@ router.get('/commentChildrenPage', async function (req, res) {
                 include: [
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: ['username', 'avatar'],
                         as: "from_user",
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: ['username', 'avatar'],
                         as: "to_user",
                     }
                 ]
             },
             {
                 model: User,
-                attributes: ['username', 'avatar', 'role'],
+                attributes: ['username', 'avatar'],
                 as: "from_user",
             },
             {
                 model: User,
-                attributes: ['username', 'avatar', 'role'],
+                attributes: ['username', 'avatar'],
                 as: "to_user",
             }
 
         ],
         distinct: true
     })
-
+    // res.json({ count, rows, a:111})
+    // return
     var newlist = [];
     for (let i = 0; i < rows.length; i++) {
         var temp = rows[i].get({
@@ -479,12 +491,12 @@ router.get('/fasdfads', async function (req, res) {
                 include: [
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: ['username', 'avatar'],
                         as: "from_user",
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: ['username', 'avatar'],
                         as: "to_user",
                     }
                 ]
@@ -501,36 +513,36 @@ router.get('/fasdfads', async function (req, res) {
                         include: [
                             {
                                 model: User,
-                                attributes: ['username', 'avatar', 'role'],
+                                attributes: ['username', 'avatar'],
                                 as: "from_user",
                             },
                             {
                                 model: User,
-                                attributes: ['username', 'avatar', 'role'],
+                                attributes: ['username', 'avatar'],
                                 as: "to_user",
                             }
                         ]
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: ['username', 'avatar'],
                         as: "from_user",
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar', 'role'],
+                        attributes: ['username', 'avatar'],
                         as: "to_user",
                     }
                 ],
             },
             {
                 model: User,
-                attributes: ['username', 'avatar', 'role'],
+                attributes: ['username', 'avatar'],
                 as: "from_user",
             },
             {
                 model: User,
-                attributes: ['username', 'avatar', 'role'],
+                attributes: ['username', 'avatar'],
                 as: "to_user",
             }
 

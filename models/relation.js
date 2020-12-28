@@ -73,6 +73,7 @@ Star.belongsTo(User, { as: "to_user", foreignKey: "to_user_id", targetKey: "id" 
 // 自连接的源键其实可以不写，不写默认就是mode里定义的主键
 // Comment.hasMany(Comment, { as: "huifu", foreignKey: "to_comment_id", sourceKey: "id" })
 Comment.hasMany(Comment, { as: "huifu", foreignKey: "to_comment_id", sourceKey: "id" })
+Comment.hasMany(Comment, { as: "huifucount", foreignKey: "to_comment_id", sourceKey: "id" })
 
 // User_article.belongsTo(User, { foreignKey: 'user_id', targetKey: 'id' })
 // User_article.belongsTo(Article, { foreignKey: 'article_id', targetKey: 'id' })
