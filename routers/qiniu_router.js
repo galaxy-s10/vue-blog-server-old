@@ -3,6 +3,12 @@ var router = express.Router()
 var qiniu = require('../models/qiniu')
 const authJwt = require('../lib/authJwt');
 
+// 获取七牛云指定前缀的文件列表
+router.get('/getList', async function (req, res, next) {
+    const ress = await qiniu.getList(req.query.prefix, req.query.limit, req.query.marker)
+    res.status(200).json({ code: 200, ...ress, message: '获取七牛云数据成功！' })
+})
+
 // 获取七牛云token
 router.get('/token', function (req, res, next) {
     const jwt_res = authJwt(req)
@@ -13,6 +19,7 @@ router.get('/token', function (req, res, next) {
     const uploadToken = qiniu.getQiniuToken()
     res.status(200).json(uploadToken)
 })
+
 // 删除七牛云文件
 router.get('/del', function (req, res, next) {
     const jwt_res = authJwt(req)
