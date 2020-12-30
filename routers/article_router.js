@@ -4,7 +4,9 @@ const Sequelize = require('sequelize')
 const Op = Sequelize.Op;
 var router = express.Router()
 var Article = require('../models/Article')
+var Article_type = require('../models/Article_type')
 var Tag = require('../models/Tag')
+var Type = require('../models/Type')
 var Comment = require('../models/Comment')
 var User_article = require('../models/User_article')
 var User = require('../models/User')
@@ -90,15 +92,17 @@ router.get('/typelist', async function (req, res, next) {
     })
 })
 
-//文章分页
-router.get('/page', async function (req, res, next) {
-    var { ordername, orderby, type, nowPage, pageSize, is_admin } = req.query
-    console.log(ordername, orderby, type, nowPage, pageSize, is_admin)
+// 随记文章分页
+router.get('/page1', async function (req, res, next) {
+    var { is_admin, ordername, orderby, nowPage, pageSize } = req.query
+    console.log(ordername, orderby, nowPage, pageSize, is_admin)
     var offset = parseInt((nowPage - 1) * pageSize)
     var limit = parseInt(pageSize)
     if (is_admin) {
-        var pagelist = await Article.findAndCountAll({
-            // order: [['createdAt', 'desc']],
+        var { count, rows } = await Article.findAndCountAll({
+            order: [
+                [ordername ? ordername : 'createdAt', orderby ? orderby : 'desc']
+            ],
             limit: limit,
             offset: offset,
             include: [
@@ -122,86 +126,199 @@ router.get('/page', async function (req, res, next) {
             ],
             distinct: true,
         })
-        res.status(200).json({
-            pagelist
-        })
-        return
+        return res.status(200).json({ code: 200, count, rows, message: '获取随记文章分页成功！' })
     }
-    if (type) {
-        var pagelist = await Article.findAndCountAll({
-            where: { type, status: 1 },
-            order: [['createdAt', 'desc']],
-            limit: limit,
-            offset: offset,
-            include: [
-                {
-                    model: User,
-                },
-                {
-                    model: Comment,
-                },
-                {
-                    model: Tag,
-                    through: { attributes: [] },
-                },
-                {
-                    model: Star,
-                },
-            ],
-            // 去重
-            distinct: true,
-        })
+})
+
+// 获取文章列表
+router.get('/page', async function (req, res, next) {
+    var { is_admin, ordername, orderby, type_id, keyword, status, is_comment, nowPage, pageSize } = req.query
+    console.log(is_admin, ordername, orderby, type_id, nowPage, pageSize)
+    var offset = parseInt((nowPage - 1) * pageSize)
+    var limit = parseInt(pageSize)
+    let whereData = {}
+    let whereData1 = {}
+    let orderData = []
+    if (type_id != undefined) {
+        whereData1['id'] = type_id
+    }
+    // if (keyword != undefined) {
+    //     whereData1['[Op.or]'] =
+    //     {
+    //         title: { [Op.like]: '%' + keyword + '%' },
+    //         content: { [Op.like]: '%' + keyword + '%' },
+    //     }
+
+    // }
+    if (status != undefined) {
+        whereData['status'] = status
+    }
+    if (is_comment != undefined) {
+        whereData['is_comment'] = is_comment
     }
     if (ordername && orderby) {
-        var ordername = ordername.replace(/\'/g, "")
-        var orderby = orderby.replace(/\'/g, "")
-        var pagelist = await Article.findAndCountAll({
-            where: { status: 1 },
-            order: [[ordername, orderby]],
-            limit: limit,
-            offset: offset,
-            include: [
-                {
-                    model: User,
-                }, {
-                    model: Comment,
-                }],
-            // 去重
-            distinct: true,
-        })
+        orderData.push([
+            ordername, orderby
+        ])
     }
-    if (type == undefined && ordername == undefined && orderby == undefined) {
-        var pagelist = await Article.findAndCountAll({
-            order: [['createdAt', 'desc']],
-            where: { status: 1 },
+
+    if (is_admin) {
+        var { count, rows } = await Article.findAndCountAll({
+            where: whereData,
+            order: orderData,
             limit: limit,
             offset: offset,
             include: [
                 {
-                    model: User,
-                },
-                {
-                    model: Star,
-                    where: {
-                        to_user_id: -1
-                    },
-                    required: false,
-                },
-                {
-                    model: Comment,
-                },
-                {
-                    model: Tag,
-                    through: { attributes: [] },
+                    model: Type,
+                    where: whereData1,
                 },
             ],
+            // include: [
+            //     {
+            //         model: Article,
+            //         where: whereData1,
+            //         include: [
+            //             {
+            //                 model: Star,
+            //                 where: {
+            //                     to_user_id: -1
+            //                 },
+            //                 required: false,
+            //             },
+            //             {
+            //                 model: User,
+            //             },
+            //             {
+            //                 model: Comment,
+            //             },
+            //             {
+            //                 model: Tag,
+            //                 through: { attributes: [] },
+            //             },
+            //         ],
+            //         required: false,
+            //     },
+            // ],
             distinct: true,
         })
+        return res.status(200).json({ whereData1, code: 200, count, rows, message: '获取文章列表成功！' })
+
     }
-    res.status(200).json({
-        pagelist
-    })
 })
+
+// //文章分页
+// router.get('/page', async function (req, res, next) {
+//     var { ordername, orderby, type, nowPage, pageSize, is_admin } = req.query
+//     console.log(ordername, orderby, type, nowPage, pageSize, is_admin)
+//     var offset = parseInt((nowPage - 1) * pageSize)
+//     var limit = parseInt(pageSize)
+//     if (is_admin) {
+//         var pagelist = await Article.findAndCountAll({
+//             // order: [['createdAt', 'desc']],
+//             limit: limit,
+//             offset: offset,
+//             include: [
+//                 {
+//                     model: Star,
+//                     where: {
+//                         to_user_id: -1
+//                     },
+//                     required: false,
+//                 },
+//                 {
+//                     model: User,
+//                 },
+//                 {
+//                     model: Comment,
+//                 },
+//                 {
+//                     model: Tag,
+//                     through: { attributes: [] },
+//                 },
+//             ],
+//             distinct: true,
+//         })
+//         res.status(200).json({
+//             pagelist
+//         })
+//         return
+//     }
+//     if (type) {
+//         var pagelist = await Article.findAndCountAll({
+//             where: { type, status: 1 },
+//             order: [['createdAt', 'desc']],
+//             limit: limit,
+//             offset: offset,
+//             include: [
+//                 {
+//                     model: User,
+//                 },
+//                 {
+//                     model: Comment,
+//                 },
+//                 {
+//                     model: Tag,
+//                     through: { attributes: [] },
+//                 },
+//                 {
+//                     model: Star,
+//                 },
+//             ],
+//             // 去重
+//             distinct: true,
+//         })
+//     }
+//     if (ordername && orderby) {
+//         var ordername = ordername.replace(/\'/g, "")
+//         var orderby = orderby.replace(/\'/g, "")
+//         var pagelist = await Article.findAndCountAll({
+//             where: { status: 1 },
+//             order: [[ordername, orderby]],
+//             limit: limit,
+//             offset: offset,
+//             include: [
+//                 {
+//                     model: User,
+//                 }, {
+//                     model: Comment,
+//                 }],
+//             // 去重
+//             distinct: true,
+//         })
+//     }
+//     if (type == undefined && ordername == undefined && orderby == undefined) {
+//         var pagelist = await Article.findAndCountAll({
+//             order: [['createdAt', 'desc']],
+//             where: { status: 1 },
+//             limit: limit,
+//             offset: offset,
+//             include: [
+//                 {
+//                     model: User,
+//                 },
+//                 {
+//                     model: Star,
+//                     where: {
+//                         to_user_id: -1
+//                     },
+//                     required: false,
+//                 },
+//                 {
+//                     model: Comment,
+//                 },
+//                 {
+//                     model: Tag,
+//                     through: { attributes: [] },
+//                 },
+//             ],
+//             distinct: true,
+//         })
+//     }
+//     res.status(200).json({
+//         pagelist
+//     })
+// })
 
 // 发表文章
 router.post('/add', async function (req, res, next) {

@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize')
 const sequelize = require('../config/db')
-const Link = sequelize.define(
-    'link',
+const Music = sequelize.define(
+    'music',
     {
         id: {
             type: Sequelize.INTEGER,
@@ -12,10 +12,10 @@ const Link = sequelize.define(
         name: {
             type: Sequelize.STRING(50),
         },
-        avatar: {
+        img: {
             type: Sequelize.STRING(100),
         },
-        description: {
+        author: {
             type: Sequelize.STRING(50),
         },
         url: {
@@ -30,8 +30,8 @@ const Link = sequelize.define(
         freezeTableName: true
     }
 )
-// Link.sync({ force: true }).then((res) => {
+// Music.sync({ force: true }).then((res) => {
 //     console.log('如果表存在 会删除表重新建表')
 //     console.log(res)
 // })
-module.exports = Link
+module.exports = Music

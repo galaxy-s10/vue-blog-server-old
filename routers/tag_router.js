@@ -1,6 +1,8 @@
 var express = require('express')
 var router = express.Router()
 const Joi = require('@hapi/joi')
+const Sequelize = require('sequelize')
+const Op = Sequelize.Op;
 var Article = require('../models/Article')
 var Article_tag = require('../models/Article_tag')
 var Tag = require('../models/Tag')
@@ -65,9 +67,9 @@ router.get('/list', async function (req, res) {
     res.json({ count, rows })
 })
 
-// 标签分页
+// 获取标签列表
 router.get('/tagPage', async function (req, res) {
-    var { nowPage, pageSize } = req.query
+    var { name, nowPage, pageSize } = req.query
     console.log('nowPage, pageSize')
     console.log(req.query)
     console.log(nowPage, pageSize)
@@ -78,22 +80,28 @@ router.get('/tagPage', async function (req, res) {
         include: [
             {
                 model: Article,
-                // include: [
-                //     {
-                //         model: Comment,
-                //     },
-                //     {
-                //         model: Tag,
-                //     }
-                // ],
             }
         ],
         limit: limit,
         offset: offset,
         // 去重
         distinct: true,
+        where: {
+            [Op.or]: [
+                {
+                    name: name ? {
+                        [Op.like]: '%' + name + '%'
+                    } : { [Op.like]: '%' + '' + '%' }
+                },
+                {
+                    color: name ? {
+                        [Op.like]: '%' + name + '%'
+                    } : { [Op.like]: '%' + '' + '%' }
+                },
+            ],
+        }
     })
-    res.status(200).json({ code: 200, count, rows, message: '查询标签分页成功！' })
+    res.status(200).json({ code: 200, count, rows, message: '获取标签列表成功！' })
 })
 
 // 标签文章分页
@@ -121,7 +129,7 @@ router.get('/page', async function (req, res) {
         distinct: true,
         where: { tag_id: id },
     })
-    res.status(200).json({ count, rows,message:'获取标签文章分页成功！' })
+    res.status(200).json({ count, rows, message: '获取标签文章分页成功！' })
 })
 
 // 修改标签
