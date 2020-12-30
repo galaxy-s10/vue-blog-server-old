@@ -7,7 +7,6 @@ let getStatus = require('./lib/getStatus')
 let permission = require('./lib/permission')
 let addLog = require('./lib/addLog')
 let userInfo = require('./lib/userInfo')
-
 let app = express()
 
 // parse application/x-www-form-urlencoded

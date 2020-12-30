@@ -1,5 +1,5 @@
 const express = require('express')
-const secret = require('../config/secret')
+const { secret } = require('../config/secret')
 const Joi = require('@hapi/joi')
 const jwt = require('jsonwebtoken');
 const router = express.Router()
@@ -10,6 +10,7 @@ const permission = require('../lib/permission')
 const MD5 = require('crypto-js/md5');
 const authJwt = require('../lib/authJwt');
 const User_role = require('../models/User_role');
+
 
 // 判断权限
 // router.use(async (req, res, next) => {
