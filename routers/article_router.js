@@ -138,18 +138,36 @@ router.get('/page', async function (req, res, next) {
     var limit = parseInt(pageSize)
     let whereData = {}
     let whereData1 = {}
+    let search = [
+        {
+            title: {
+                [Op.like]: '%' + "" + '%'
+            }
+        },
+        {
+            content: {
+                [Op.like]: '%' + "" + '%'
+            }
+        }
+    ]
     let orderData = []
     if (type_id != undefined) {
         whereData1['id'] = type_id
     }
-    // if (keyword != undefined) {
-    //     whereData1['[Op.or]'] =
-    //     {
-    //         title: { [Op.like]: '%' + keyword + '%' },
-    //         content: { [Op.like]: '%' + keyword + '%' },
-    //     }
-
-    // }
+    if (keyword != undefined) {
+        search = [
+            {
+                title: {
+                    [Op.like]: '%' + keyword + '%'
+                }
+            },
+            {
+                content: {
+                    [Op.like]: '%' + keyword + '%'
+                }
+            }
+        ]
+    }
     if (status != undefined) {
         whereData['status'] = status
     }
@@ -161,48 +179,53 @@ router.get('/page', async function (req, res, next) {
             ordername, orderby
         ])
     }
-
     if (is_admin) {
         var { count, rows } = await Article.findAndCountAll({
-            where: whereData,
+            where: {
+                ...whereData,
+                [Op.or]: search
+            },
+            // where: {
+            //     [Op.or]: search
+
+            // },
             order: orderData,
             limit: limit,
             offset: offset,
+            // include: [
+            // {
+            // model: Article,
+            // where: whereData1,
             include: [
                 {
                     model: Type,
+                    // as:'xxx',
                     where: whereData1,
                 },
+                {
+                    model: Star,
+                    where: {
+                        to_user_id: -1
+                    },
+                    required: false,
+                },
+                {
+                    model: User,
+                },
+                {
+                    model: Comment,
+                },
+                {
+                    model: Tag,
+                    through: { attributes: [] },
+                },
             ],
-            // include: [
-            //     {
-            //         model: Article,
-            //         where: whereData1,
-            //         include: [
-            //             {
-            //                 model: Star,
-            //                 where: {
-            //                     to_user_id: -1
-            //                 },
-            //                 required: false,
-            //             },
-            //             {
-            //                 model: User,
-            //             },
-            //             {
-            //                 model: Comment,
-            //             },
-            //             {
-            //                 model: Tag,
-            //                 through: { attributes: [] },
-            //             },
-            //         ],
-            //         required: false,
-            //     },
+            required: false,
+            // },
             // ],
             distinct: true,
         })
-        return res.status(200).json({ whereData1, code: 200, count, rows, message: '获取文章列表成功！' })
+        return res.status(200).json({ whereData, search, whereData1, code: 200, count, rows, message: '获取文章列表成功！' })
 
     }
 })

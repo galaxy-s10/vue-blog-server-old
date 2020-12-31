@@ -43,6 +43,7 @@ let log_router = require('./routers/log_router')
 let star_router = require('./routers/star_router')
 let front_router = require('./routers/front_router')
 let music_router = require('./routers/music_router')
+let type_router = require('./routers/type_router')
 
 //转换时间格式
 function formateDate(datetime) {
@@ -108,6 +109,7 @@ app.use('/log', log_router)
 app.use('/star', star_router)
 app.use('/front', front_router)
 app.use('/music', music_router)
+app.use('/type', type_router)
 
 // 统一处理报错
 app.use('/', (err, req, res, next) => {
