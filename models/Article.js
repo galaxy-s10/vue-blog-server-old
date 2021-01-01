@@ -13,9 +13,6 @@ const Article = sequelize.define(
         title: {
             type: Sequelize.STRING(50),
         },
-        type: {
-            type: Sequelize.STRING(20),
-        },
         is_comment: {
             type: Sequelize.INTEGER,
             defaultValue: 1

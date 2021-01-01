@@ -5,28 +5,9 @@ const Sequelize = require('sequelize')
 const Op = Sequelize.Op;
 const Joi = require('@hapi/joi')
 var Music = require('../models/Music')
+const userInfo = require('../lib/userInfo')
+const permission = require('../lib/permission')
 
-// 判断权限
-// router.use('/', (req, res, next) => {
-//     console.log('判断权限');
-//     const validateList = ['/add', '/del', '/edit']
-//     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-//         const jwt_res = authJwt(req)
-//         if (jwt_res.code == 401) {
-//             console.log(jwt_res.message);
-//             next(jwt_res)
-//         } else {
-//             console.log('合法token');
-//             next()
-//         }
-//         // 不加return会继续执行if语句外面的代码
-//         return
-//     } else {
-//         next()
-//         return
-//     }
-//     // console.log('没想到吧，我还会执行');
-// })
 
 // 判断参数
 // const validateMusic = Joi.object({
@@ -42,49 +23,63 @@ var Music = require('../models/Music')
 
 // 获取音乐列表
 router.get('/pageList', async function (req, res) {
-    var { is_admin, nowPage, pageSize, name, status } = req.query
-    console.log(is_admin, nowPage, pageSize, name, status)
+    var { nowPage, pageSize, keyword, status } = req.query
+    console.log(nowPage, pageSize, keyword, status)
     var offset = parseInt((nowPage - 1) * pageSize)
     var limit = parseInt(pageSize)
-    if (is_admin) {
-        var { count, rows } = await Music.findAndCountAll({
-            limit: limit,
-            offset: offset,
-            distinct: true,
-            order: [['createdAt', 'desc']],
-            where: {
-                [Op.or]: [
-                    {
-                        name: name ? {
-                            [Op.like]: '%' + name + '%'
-                        } : { [Op.like]: '%' + '' + '%' }
-                    },
-                ],
-                status: status != undefined ? status : [0, 1],
+    let whereData = {}
+    let search = [
+        {
+            name: {
+                [Op.like]: '%' + "" + '%'
             }
-        })
-        res.status(200).json({ code: 200, count, rows, message: '获取音乐列表成功！' })
+        },
+        {
+            author: {
+                [Op.like]: '%' + "" + '%'
+            }
+        }
+    ]
+    if (keyword != undefined) {
+        search = [
+            {
+                name: {
+                    [Op.like]: '%' + keyword + '%'
+                }
+            },
+            {
+                author: {
+                    [Op.like]: '%' + keyword + '%'
+                }
+            }
+        ]
+    }
+    let permissionResult = await permission(userInfo.id, 'SELECT_MUSIC')
+    if (status != undefined) {
+        if (!permissionResult) {
+            whereData['status'] = 1
+        } else {
+            whereData['status'] = status
+        }
 
     } else {
-        var { count, rows } = await Music.findAndCountAll({
-            limit: limit,
-            offset: offset,
-            distinct: true,
-            order: [['createdAt', 'desc']],
-            where: {
-                [Op.or]: [
-                    {
-                        name: name ? {
-                            [Op.like]: '%' + name + '%'
-                        } : { [Op.like]: '%' + '' + '%' }
-                    },
-                ],
-                status: 1,
-            }
-        })
-        res.status(200).json({ code: 200, count, rows, message: '获取音乐列表成功！' })
-
+        if (!permissionResult) {
+            whereData['status'] = 1
+        }
     }
+    // return res.json(1)
+    var { count, rows } = await Music.findAndCountAll({
+        limit: limit,
+        offset: offset,
+        distinct: true,
+        order: [['createdAt', 'desc']],
+        where: {
+            ...whereData,
+            [Op.or]: search
+        },
+    })
+    res.status(200).json({ code: 200, count, rows, message: '获取音乐列表成功！' })
+
 })
 
 // 新增音乐
