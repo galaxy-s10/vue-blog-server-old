@@ -1,7 +1,7 @@
 var express = require('express')
 var router = express.Router()
 const Joi = require('@hapi/joi')
-var Front = require('../models/Front')
+var Frontend = require('../models/Frontend')
 var authJwt = require('../lib/authJwt')
 
 // 判断权限
@@ -33,7 +33,7 @@ var authJwt = require('../lib/authJwt')
 
 // 获取前台信息
 router.get('/detail', async function (req, res) {
-    var detail = await Front.findOne()
+    var detail = await Frontend.findOne()
     res.status(200).json({ code: 200, detail, message: '获取前台信息成功！' })
 
 })
@@ -43,7 +43,7 @@ router.get('/detail', async function (req, res) {
 router.put('/update', async function (req, res, next) {
     let row = { ...req.body }
     delete row.id
-    const result = await Front.update({
+    const result = await Frontend.update({
         ...row
     }, {
         where: { id: req.body.id }

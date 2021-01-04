@@ -3,6 +3,14 @@ var router = express.Router()
 var qiniu = require('../models/qiniu')
 const authJwt = require('../lib/authJwt');
 
+// 七牛回调
+router.post('/callback', async function (req, res, next) {
+    console.log('七牛回调七牛回调七牛回调')
+    let ress = req.body
+    res.status(200).json({ code: 200, ...ress, message: '七牛云上传回调成功！' })
+
+})
+
 // 移动或重命名文件
 router.put('/updateQiniu', async function (req, res, next) {
     let { srcKey, destKey } = req.body
@@ -34,18 +42,17 @@ router.get('/token', function (req, res, next) {
 })
 
 // 删除七牛云文件
-router.get('/del', function (req, res, next) {
-    const jwt_res = authJwt(req)
-    if (jwt_res.code == 401) {
-        next(jwt_res)
-        return
-    }
-    qiniu.del(req.query.filename).then(ress => {
+router.delete('/delete', function (req, res, next) {
+    // const jwt_res = authJwt(req)
+    // if (jwt_res.code == 401) {
+    //     next(jwt_res)
+    //     return
+    // }
+    qiniu.delete(req.body.filename).then(ress => {
         console.log(ress);
-        const message = ress == 1 ? '删除七牛云图片成功' : '删除七牛云图片失败'
-        res.status(200).json(message)
+        res.status(200).json({ code: 200, ...ress, message: '删除七牛云图片成功!' })
     }).catch(err => {
-        res.status(200).json(err)
+        res.status(200).json({ code: 400, err, message: '删除七牛云图片失败!' })
     })
 })
 

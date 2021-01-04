@@ -416,24 +416,24 @@ router.get('/commentChildrenPage', async function (req, res) {
                 include: [
                     {
                         model: User,
-                        attributes: ['username', 'avatar'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "from_user",
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "to_user",
                     }
                 ]
             },
             {
                 model: User,
-                attributes: ['username', 'avatar'],
+                attributes: { exclude: ['password', 'token'] },
                 as: "from_user",
             },
             {
                 model: User,
-                attributes: ['username', 'avatar'],
+                attributes: { exclude: ['password', 'token'] },
                 as: "to_user",
             }
 
@@ -491,12 +491,12 @@ router.get('/fasdfads', async function (req, res) {
                 include: [
                     {
                         model: User,
-                        attributes: ['username', 'avatar'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "from_user",
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "to_user",
                     }
                 ]
@@ -513,36 +513,36 @@ router.get('/fasdfads', async function (req, res) {
                         include: [
                             {
                                 model: User,
-                                attributes: ['username', 'avatar'],
+                                attributes: { exclude: ['password', 'token'] },
                                 as: "from_user",
                             },
                             {
                                 model: User,
-                                attributes: ['username', 'avatar'],
+                                attributes: { exclude: ['password', 'token'] },
                                 as: "to_user",
                             }
                         ]
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "from_user",
                     },
                     {
                         model: User,
-                        attributes: ['username', 'avatar'],
+                        attributes: { exclude: ['password', 'token'] },
                         as: "to_user",
                     }
                 ],
             },
             {
                 model: User,
-                attributes: ['username', 'avatar'],
+                attributes: { exclude: ['password', 'token'] },
                 as: "from_user",
             },
             {
                 model: User,
-                attributes: ['username', 'avatar'],
+                attributes: { exclude: ['password', 'token'] },
                 as: "to_user",
             }
 

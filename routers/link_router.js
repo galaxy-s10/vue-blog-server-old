@@ -2,7 +2,12 @@ var express = require('express')
 var router = express.Router()
 var authJwt = require('../lib/authJwt')
 const Joi = require('@hapi/joi')
+const Sequelize = require('sequelize')
+const Op = Sequelize.Op;
 var Link = require('../models/Link')
+const userInfo = require('../lib/userInfo')
+const permission = require('../lib/permission')
+
 
 // 判断权限
 // router.use('/', (req, res, next) => {
@@ -39,27 +44,88 @@ var Link = require('../models/Link')
 // }).xor('id')
 
 // 获取友链
-router.get('/list', async function (req, res) {
-    var { rows, count } = await Link.findAndCountAll()
-    res.json({ count, rows })
-})
+// router.get('/list', async function (req, res) {
+//     var { rows, count } = await Link.findAndCountAll()
+//     res.json({ count, rows })
+// })
 
-// 获取友链分页
+// 获取友链列表
 router.get('/pageList', async function (req, res) {
-    var { nowPage, pageSize } = req.query
+    var { nowPage, pageSize,keyword, status, createdAt, updatedAt } = req.query
     console.log('nowPage, pageSize')
     console.log(req.query)
     console.log(nowPage, pageSize)
     var offset = parseInt((nowPage - 1) * pageSize)
     var limit = parseInt(pageSize)
+    let whereData = {}
+    if (createdAt) {
+        whereData['createdAt'] = { [Op.between]: [createdAt, `${createdAt} 23:59:59`] }
+    }
+    if (updatedAt) {
+        whereData['updatedAt'] = { [Op.between]: [updatedAt, `${updatedAt} 23:59:59`] }
+    }
+    let search = [
+        {
+            name: {
+                [Op.like]: '%' + "" + '%'
+            }
+        },
+        {
+            description: {
+                [Op.like]: '%' + "" + '%'
+            }
+        },
+        {
+            url: {
+                [Op.like]: '%' + "" + '%'
+            }
+        }
+    ]
+    let permissionResult = await permission(userInfo.id, 'SELECT_MUSIC')
+
+    if (status != undefined) {
+        if (!permissionResult) {
+            whereData['status'] = 1
+        } else {
+            whereData['status'] = status
+        }
+
+    } else {
+        if (!permissionResult) {
+            whereData['status'] = 1
+        }
+    }
+    if (keyword != undefined) {
+        search = [
+            {
+                name: {
+                    [Op.like]: '%' + keyword + '%'
+                }
+            },
+            {
+                description: {
+                    [Op.like]: '%' + keyword + '%'
+                }
+            },
+            {
+                url: {
+                    [Op.like]: '%' + keyword + '%'
+                }
+            }
+        ]
+    }
     var { count, rows } = await Link.findAndCountAll({
-        // order: [['createdAt', 'desc']],
+        order: [['createdAt', 'desc']],
+        where: {
+            ...whereData,
+            [Op.or]: search
+        },
         limit: limit,
         offset: offset,
         // 去重
         distinct: true,
     })
-    res.status(200).json({ code: 200, count, rows, message: '查询友链分页成功！' })
+    res.status(200).json({ code: 200, count, rows, message: '获取友链列表成功！' })
 
     // var { rows, count } = await Link.findAndCountAll()
     // res.json({ count, rows })
@@ -88,7 +154,7 @@ router.post('/add', async function (req, res, next) {
 })
 
 // 修改友链
-router.put('/edit', async function (req, res, next) {
+router.put('/update', async function (req, res, next) {
     // try {
     //     await validateLink.validateAsync(req.body, { convert: false, allowUnknown: true })
     // } catch (err) {
@@ -113,7 +179,7 @@ router.put('/edit', async function (req, res, next) {
 })
 
 // 删除友链
-router.delete('/del', async function (req, res, next) {
+router.delete('/delete', async function (req, res, next) {
     // try {
     //     await Joi.number().required().validateAsync(req.body.id, { convert: false })
     // } catch (err) {

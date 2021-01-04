@@ -64,38 +64,6 @@ router.get('/list', async function (req, res, next) {
 //     res.status(200).json({ code: 200, result })
 // })
 
-// 测试接口
-router.put('/aaa', async function (req, res, next) {
-    let id = 1
-    var { count, rows } = await User_role.findAndCountAll({
-        include: [
-            {
-                model: Role,
-                include: [
-                    {
-                        model: Auth,
-                        through: { attributes: [] },
-                    }
-                ]
-            }
-        ],
-        where: { user_id: id }
-    })
-    res.json(rows)
-    let temp = [];
-    console.log("获取某个用户的所有权限");
-    rows.forEach((item) => {
-        // console.log(item.role.auths);
-        item.role.auths.forEach((val) => {
-            temp.push(val.auth_name);
-        });
-    });
-    // console.log(temp);
-    // console.log([...new Set(temp)]);
-    res.status(200).json({ code: 200, temp })
-})
-
-
 // 查询某个角色的父级
 router.get('/findParentRole', async function (req, res) {
     // 查询当前角色的父级p_id
@@ -171,11 +139,11 @@ router.put('/editRoleAuth', async function (req, res, next) {
         next(permissionResult)
         return
     }
-    let { id, auths, role_name, role_description } = req.body
+    let { id, auths, p_id, role_name, role_description } = req.body
     console.log(id, auths);
     let update_auths = await Auth.findAll({ where: { id: auths } })
     let find_role = await Role.findByPk(id)
-    let update_role = await find_role.update({ role_name, role_description })
+    let update_role = await find_role.update({ p_id, role_name, role_description })
     let result = await find_role.setAuths(update_auths)
     res.status(200).json({ code: 200, result, message: "修改角色权限成功!" })
 })
@@ -191,11 +159,12 @@ router.post('/addRole', async function (req, res, next) {
         next(permissionResult)
         return
     }
-    let { p_id, role_name, role_description } = req.body
+    let { p_id, role_name, role_description, auths } = req.body
     let result = await Role.create({
         p_id, role_name, role_description
     })
-    res.status(200).json({ code: 200, result, message: "添加角色成功!" })
+    let result1 = result.setAuths(auths)
+    res.status(200).json({ code: 200, result1, message: "添加角色成功!" })
 })
 
 // 删除角色
@@ -211,11 +180,12 @@ router.delete('/deleteRole', async function (req, res, next) {
     }
     let find_role = await Role.findByPk(req.body.id)
     console.log(find_role);
-    if (find_role == null) {
-        next({ code: 400, message: '不能删除不存在的role!' })
-        return
-    }
+    // if (find_role == null) {
+    //     next({ code: 400, message: '不能删除不存在的role!' })
+    //     return
+    // }
     let delelte_res = await find_role.setUsers([])
+    let delelte_res1 = await find_role.setAuths([])
     await find_role.destroy()
     res.status(200).json({ code: 200, delelte_res, message: "删除角色成功!" })
 })

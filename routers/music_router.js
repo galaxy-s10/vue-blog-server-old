@@ -23,11 +23,17 @@ const permission = require('../lib/permission')
 
 // 获取音乐列表
 router.get('/pageList', async function (req, res) {
-    var { nowPage, pageSize, keyword, status } = req.query
+    var { nowPage, pageSize, keyword, status, createdAt, updatedAt } = req.query
     console.log(nowPage, pageSize, keyword, status)
     var offset = parseInt((nowPage - 1) * pageSize)
     var limit = parseInt(pageSize)
     let whereData = {}
+    if (createdAt) {
+        whereData['createdAt'] = { [Op.between]: [createdAt, `${createdAt} 23:59:59`] }
+    }
+    if (updatedAt) {
+        whereData['updatedAt'] = { [Op.between]: [updatedAt, `${updatedAt} 23:59:59`] }
+    }
     let search = [
         {
             name: {
@@ -80,6 +86,18 @@ router.get('/pageList', async function (req, res) {
     })
     res.status(200).json({ code: 200, count, rows, message: '获取音乐列表成功！' })
 
+})
+
+// 查找音乐
+router.get('/findOne', async function (req, res, next) {
+    var detail = await Music.findOne(
+        {
+            where: {
+                id: req.query.id
+            },
+        }
+    )
+    res.status(200).json({ code: 200, detail, message: '查找音乐成功！' })
 })
 
 // 新增音乐

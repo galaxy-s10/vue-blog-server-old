@@ -6,8 +6,11 @@ const Op = Sequelize.Op;
 var Article = require('../models/Article')
 var Article_tag = require('../models/Article_tag')
 var Tag = require('../models/Tag')
+var Star = require('../models/Star')
+var User = require('../models/User')
 var Comment = require('../models/Comment')
 var authJwt = require('../lib/authJwt')
+const permission = require('../lib/permission')
 
 // 判断权限
 router.use((req, res, next) => {
@@ -68,14 +71,51 @@ router.get('/list', async function (req, res) {
 })
 
 // 获取标签列表
-router.get('/tagPage', async function (req, res) {
-    var { name, nowPage, pageSize } = req.query
+router.get('/pageList', async function (req, res) {
+    var { nowPage, pageSize, keyword, createdAt, updatedAt } = req.query
     console.log('nowPage, pageSize')
     console.log(req.query)
     console.log(nowPage, pageSize)
     var offset = parseInt((nowPage - 1) * pageSize)
     var limit = parseInt(pageSize)
+    let whereData = {}
+    if (createdAt) {
+        whereData['createdAt'] = { [Op.between]: [createdAt, `${createdAt} 23:59:59`] }
+    }
+    if (updatedAt) {
+        whereData['updatedAt'] = { [Op.between]: [updatedAt, `${updatedAt} 23:59:59`] }
+    }
+    let search = [
+        {
+            name: {
+                [Op.like]: '%' + "" + '%'
+            }
+        },
+        {
+            color: {
+                [Op.like]: '%' + "" + '%'
+            }
+        }
+    ]
+    if (keyword) {
+        search = [
+            {
+                title: {
+                    [Op.like]: '%' + keyword + '%'
+                }
+            },
+            {
+                color: {
+                    [Op.like]: '%' + keyword + '%'
+                }
+            }
+        ]
+    }
     var { count, rows } = await Tag.findAndCountAll({
+        where: {
+            ...whereData,
+            [Op.or]: search
+        },
         order: [['createdAt', 'desc']],
         include: [
             {
@@ -86,29 +126,15 @@ router.get('/tagPage', async function (req, res) {
         offset: offset,
         // 去重
         distinct: true,
-        where: {
-            [Op.or]: [
-                {
-                    name: name ? {
-                        [Op.like]: '%' + name + '%'
-                    } : { [Op.like]: '%' + '' + '%' }
-                },
-                {
-                    color: name ? {
-                        [Op.like]: '%' + name + '%'
-                    } : { [Op.like]: '%' + '' + '%' }
-                },
-            ],
-        }
     })
     res.status(200).json({ code: 200, count, rows, message: '获取标签列表成功！' })
 })
 
 // 标签文章分页
 router.get('/page', async function (req, res) {
-    var { id, page, size } = req.query
-    var offset = parseInt((page - 1) * size)
-    var limit = parseInt(size)
+    var { id, nowPage, pageSize } = req.query
+    var offset = parseInt((nowPage - 1) * pageSize)
+    var limit = parseInt(pageSize)
     var { count, rows } = await Article_tag.findAndCountAll({
         include: [
             {
@@ -119,7 +145,21 @@ router.get('/page', async function (req, res) {
                     },
                     {
                         model: Tag,
-                    }
+                    },
+                    {
+                        model: Star,
+                        where: {
+                            to_user_id: -1
+                        },
+                        required: false,
+                    },
+                    {
+                        attributes: { exclude: ['password', 'token'] },
+                        model: User,
+                    },
+                    {
+                        model: Comment,
+                    },
                 ],
             }
         ],
@@ -133,9 +173,11 @@ router.get('/page', async function (req, res) {
 })
 
 // 修改标签
-router.put('/edit', async function (req, res, next) {
+router.put('/update', async function (req, res, next) {
+    let row = { ...req.body }
+    delete row.id
     const result = await Tag.update({
-        ...req.body
+        ...row
     }, {
         where: { id: req.body.id }
     })
@@ -144,35 +186,16 @@ router.put('/edit', async function (req, res, next) {
 
 // 新增标签
 router.post('/add', async function (req, res, next) {
-    // try {
-    //     await validateTag.validateAsync(req.body, { convert: false })
-    // } catch (err) {
-    //     next({ code: 400, message: err.message })
-    //     return
-    // }
-    // const jwt_res = authJwt(req)
-    // if (jwt_res.user.role == 'admin') {
-    // const { name, color } = req.body
+    let row = { ...req.body }
+    delete row.id
     const result = await Tag.create({
-        ...req.body
+        ...row
     })
     res.status(200).json({ code: 200, result, message: '新增标签成功！' })
-
-    // } else {
-    //     next(jwt_res)
-    //     return
-    // }
 })
 
 // 删除标签
-router.delete('/del', async function (req, res, next) {
-    // try {
-    //     await Joi.number().required().validateAsync(req.body.id, { convert: false })
-    // } catch (err) {
-    //     next({ code: 400, message: err.message })
-    //     return
-    // }
-    // const jwt_res = authJwt(req)
+router.delete('/delete', async function (req, res, next) {
     let find_tag = await Tag.findByPk(req.body.id)
     console.log(find_tag);
     if (find_tag == null) {

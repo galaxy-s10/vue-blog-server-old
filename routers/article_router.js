@@ -82,22 +82,13 @@ const permission = require('../lib/permission')
 //     })
 // })
 
-// //文章类型列表
-// router.get('/typelist', async function (req, res, next) {
-//     var typelist = await Article.findAll({
-//         attributes: ['type'],
-//         group: 'type'
-//     })
-//     res.json({
-//         typelist
-//     })
-// })
 
 
 // 获取文章列表
 router.get('/pageList', async function (req, res, next) {
-    var { is_admin, ordername, orderby, type_id, keyword, status, is_comment, nowPage, pageSize } = req.query
-    console.log(is_admin, ordername, orderby, type_id, nowPage, pageSize)
+    console.log('获取文章列表')
+    var { ordername, orderby, type_id, keyword, status, is_comment, nowPage, pageSize, createdAt, updatedAt } = req.query
+    console.log(ordername, orderby, type_id, keyword, status, is_comment, nowPage, pageSize, createdAt, updatedAt)
     var offset = parseInt((nowPage - 1) * pageSize)
     var limit = parseInt(pageSize)
     let whereData = {}
@@ -115,10 +106,16 @@ router.get('/pageList', async function (req, res, next) {
         }
     ]
     let orderData = []
-    if (type_id != undefined) {
+    if (createdAt) {
+        whereData['createdAt'] = { [Op.between]: [createdAt, `${createdAt} 23:59:59`] }
+    }
+    if (updatedAt) {
+        whereData['updatedAt'] = { [Op.between]: [updatedAt, `${updatedAt} 23:59:59`] }
+    }
+    if (type_id) {
         whereData1['id'] = type_id
     }
-    if (keyword != undefined) {
+    if (keyword) {
         search = [
             {
                 title: {
@@ -136,6 +133,8 @@ router.get('/pageList', async function (req, res, next) {
     // 有权限可以查看所有文章
     let permissionResult = await permission(userInfo.id, 'SELECT_ARTICLE')
 
+    console.log('permissionResult')
+    console.log(permissionResult)
     if (status != undefined) {
         if (!permissionResult) {
             whereData['status'] = 1
@@ -156,16 +155,12 @@ router.get('/pageList', async function (req, res, next) {
             ordername, orderby
         ])
     }
-    // if (is_admin) {
+    // if ( {
     var { count, rows } = await Article.findAndCountAll({
         where: {
             ...whereData,
-            [Op.or]: search
+            [Op.or]: search,
         },
-        // where: {
-        //     [Op.or]: search
-
-        // },
         order: orderData,
         limit: limit,
         offset: offset,
@@ -187,6 +182,7 @@ router.get('/pageList', async function (req, res, next) {
                 required: false,
             },
             {
+                attributes: { exclude: ['password', 'token'] },
                 model: User,
             },
             {
@@ -202,7 +198,7 @@ router.get('/pageList', async function (req, res, next) {
         // ],
         distinct: true,
     })
-    return res.status(200).json({ code: 200, count, rows, message: '获取文章列表成功！' })
+    return res.status(200).json({ whereData1, code: 200, count, rows, message: '获取文章列表成功！' })
     // }
 })
 
@@ -215,7 +211,10 @@ router.post('/add', async function (req, res, next) {
     //     next({ code: 400, message: err.message })
     //     return
     // }
-    const { title, img, is_comment, status, content, click, tags } = req.body
+    let user_id = userInfo.id;
+    let permissionResult = await permission(userInfo.id, 'SELECT_ARTICLE')
+
+    const { title, img, type_id, is_comment, status, content, click, tags } = req.body
     const jwt_res = authJwt(req)
     // if (jwt_res.user.role == 'admin') {
     let aaa = await Article.create({
@@ -223,6 +222,8 @@ router.post('/add', async function (req, res, next) {
     })
     // let bbb = await Tag.findAll({ where: { id: tagList } })
     let ccc = aaa.setTags(tags)
+    let ddd = aaa.setTypes([type_id])
+    let eee = aaa.setUsers([user_id])
     res.status(200).json({ code: 200, ccc, message: '发表文章成功！' })
 
     // } else {
@@ -233,7 +234,7 @@ router.post('/add', async function (req, res, next) {
 })
 
 // 删除文章
-router.delete('/del', async function (req, res, next) {
+router.delete('/delete', async function (req, res, next) {
     try {
         await Joi.number().required().validateAsync(req.body.id, { convert: false })
     } catch (err) {
@@ -252,8 +253,8 @@ router.delete('/del', async function (req, res, next) {
     }
 })
 
-//查找文章
-router.get('/findOne', async function (req, res) {
+// 查找文章
+router.get('/findOne', async function (req, res, next) {
     var { id } = req.query
     var currentId = userInfo.id || -2
     // 查询某篇文章，点击量+1
@@ -282,7 +283,10 @@ router.get('/findOne', async function (req, res) {
                 //加：required:fasld： LEFT OUTER JOIN `star` AS `stars` ON `article`.`id` = `stars`.`article_id` AND `stars`.`to_user_id` = - 1
                 required: false,
                 model: Star,
-
+            },
+            {
+                attributes: { exclude: ['password', 'token'] },
+                model: User,
             },
         ],
     })
@@ -311,9 +315,8 @@ router.get('/findOne', async function (req, res) {
 
 })
 
-console.log('test')
 // 修改文章
-router.put('/edit', async function (req, res, next) {
+router.put('/update', async function (req, res, next) {
     // try {
     //     await validateArticle.validateAsync(req.body, { convert: false })
     // } catch (err) {

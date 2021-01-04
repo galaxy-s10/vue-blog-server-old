@@ -13,8 +13,9 @@ const Type = require('./Type')
 const Article_type = require('./Article_type')
 const Log = require('./Log')
 const Star = require('./Star')
-const Front = require('./Front')
+const Frontend = require('./Frontend')
 const User_article = require('./User_article')
+const Qiniu_data = require('./Qiniu_data')
 // 一对一关联：belongsTo，hasOne 
 // 一对多关联：hasMany
 // 多对多关联：belongsToMany

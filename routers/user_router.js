@@ -3,8 +3,11 @@ const { secret } = require('../config/secret')
 const Joi = require('@hapi/joi')
 const jwt = require('jsonwebtoken');
 const router = express.Router()
+const Sequelize = require('sequelize')
+const Op = Sequelize.Op;
 const User = require('../models/User')
 const Role = require('../models/Role')
+const Star = require('../models/Star')
 const userInfo = require('../lib/userInfo')
 const permission = require('../lib/permission')
 const MD5 = require('crypto-js/md5');
@@ -32,23 +35,23 @@ const User_role = require('../models/User_role');
 // })
 
 // 判断参数
-const validateUser = Joi.object({
-    id: [
-        null,
-        Joi.number().required()
-    ],
-    username: Joi.string().min(3).max(10).required(),
-    password: Joi.string().pattern(new RegExp(/^\w{6,12}$/)).required(),
-    // role: [
-    //     'user',
-    //     'admin'
-    // ],
-    avatar: [
-        null,
-        Joi.string().max(150)
-    ],
-    title: Joi.string().min(3).max(20),
-}).xor('id').xor('avatar')
+// const validateUser = Joi.object({
+//     id: [
+//         null,
+//         Joi.number().required()
+//     ],
+//     username: Joi.string().min(3).max(10).required(),
+//     password: Joi.string().pattern(new RegExp(/^\w{6,12}$/)).required(),
+//     // role: [
+//     //     'user',
+//     //     'admin'
+//     // ],
+//     avatar: [
+//         null,
+//         Joi.string().max(150)
+//     ],
+//     title: Joi.string().min(3).max(20),
+// }).xor('id').xor('avatar')
 
 
 // 注册用户
@@ -154,46 +157,126 @@ router.get('/getUserInfo', async function (req, res) {
 })
 
 // 获取用户列表
-router.get('/list', async function (req, res, next) {
-    console.log('获取用户列表');
-    // const jwt_res = authJwt(req)
-    // if (jwt_res.user.role == 'admin') {
-    const list = await User.findAll()
-    res.status(200).json({ code: 1, list })
-    // } else {
-    //     next(jwt_res)
-    //     return
-    // }
+router.get('/pageList', async function (req, res, next) {
+    var { nowPage, pageSize, keyword, status, createdAt, updatedAt } = req.query
+    var offset = parseInt((nowPage - 1) * pageSize)
+    var limit = parseInt(pageSize)
+    let whereData = {}
+    if (createdAt) {
+        whereData['createdAt'] = { [Op.between]: [createdAt, `${createdAt} 23:59:59`] }
+    }
+    if (updatedAt) {
+        whereData['updatedAt'] = { [Op.between]: [updatedAt, `${updatedAt} 23:59:59`] }
+    }
+    let search = [
+        {
+            username: {
+                [Op.like]: '%' + "" + '%'
+            }
+        },
+        {
+            title: {
+                [Op.like]: '%' + "" + '%'
+            }
+        },
+    ]
+    let permissionResult = await permission(userInfo.id, 'USER_LIST')
+
+    if (status != undefined) {
+        if (!permissionResult) {
+            whereData['status'] = 1
+        } else {
+            whereData['status'] = status
+        }
+
+    } else {
+        if (!permissionResult) {
+            whereData['status'] = 1
+        }
+    }
+    if (keyword != undefined) {
+        search = [
+            {
+                username: {
+                    [Op.like]: '%' + keyword + '%'
+                }
+            },
+            {
+                title: {
+                    [Op.like]: '%' + keyword + '%'
+                }
+            },
+        ]
+    }
+    const { rows, count } = await User.findAndCountAll({
+        attributes: { exclude: ['password', 'token'] },
+        limit: limit,
+        offset: offset,
+        where: {
+            ...whereData,
+            [Op.or]: search,
+        },
+        include: [
+            {
+                model: Role,
+                include: [
+                    {
+                        model: Role,
+                        as: 'p_role',
+                    }
+                ],
+            },
+            {
+                model: Star,
+            }
+
+
+        ],
+        // 去重
+        distinct: true,
+    })
+    res.status(200).json({ code: 200, count, rows, message: "获取用户列表成功！" })
 })
 
-// 查询某个用户
-router.get('/find', async function (req, res, next) {
-    try {
-        await Joi.number().required().validateAsync(req.query.id)
-    } catch (err) {
-        next({ code: 400, message: err.message })
-        return
-    }
-    const list = await User.findOne({
-        attributes: { exclude: ['password'] },
+// 查询用户信息
+router.get('/findOne', async function (req, res, next) {
+    // try {
+    //     await Joi.number().required().validateAsync(req.query.id)
+    // } catch (err) {
+    //     next({ code: 400, message: err.message })
+    //     return
+    // }
+    const detail = await User.findOne({
+        attributes: { exclude: ['token', 'password'] },
         where: {
             id: req.query.id
         }
     })
-    res.status(200).json(list)
+    res.status(200).json({ code: 200, detail, message: "查询用户信息成功！" })
 })
 
+// 修改用户
+router.put('/update', async function (req, res, next) {
+    let { id, username, password, title, avatar, status, roles } = req.body
+    console.log(username, password, title, avatar, status, roles)
+    // let update_roles = await Role.findAll({ where: { id: req.body.roles } })
+    let find_user = await User.findByPk(id)
+    let update_user = await find_user.update({ username, password, title, avatar, status })
+    let result = await find_user.setRoles(roles)
+    // const result = await User.update(
+    //     {
+    //         ...row
+    //     },
+    //     {
+    //         where: { id: req.body.id }
+    //     }
+    // )
+    res.status(200).json({ code: 200, result, message: "修改用户成功！" })
+})
 
 // 修改用户状态
-router.put('/editStatus', async function (req, res, next) {
-    const { id, status } = req.body
-    let permissionResult = await permission(userInfo.id, 'UPDATE_USER')
-    console.log('permissionResultpermissionResult')
-    console.log(permissionResult)
-    if (permissionResult.code == 403) {
-        next(permissionResult)
-        return
-    }
+router.put('/updateStatus', async function (req, res, next) {
+    let { id, status } = req.body
     const result = await User.update(
         {
             status
@@ -202,57 +285,17 @@ router.put('/editStatus', async function (req, res, next) {
             where: { id }
         }
     )
-    res.status(200).json({ code: 200, result, message: "操作成功！" })
-    // } else {
-    //     next(jwt_res)
-    // }
-})
-
-// 修改用户
-router.put('/edit', async function (req, res, next) {
-    const { id, username, password, role, title, avatar } = req.body
-    try {
-        await validateUser.validateAsync(req.body, { convert: false, allowUnknown: true })
-    } catch (err) {
-        next({ code: 400, message: err.message })
-        return
-    }
-    const jwt_res = authJwt(req)
-    if (jwt_res.user.role == 'admin') {
-        const edit_res = await User.update(
-            {
-                username, password, role, title, avatar
-            },
-            {
-                where: { id }
-            }
-        )
-        res.status(200).json(edit_res)
-    } else {
-        next(jwt_res)
-    }
+    res.status(200).json({ code: 200, result, message: "修改用户状态成功！" })
 })
 
 // 删除用户
-router.delete('/del', async function (req, res, next) {
-    try {
-        await Joi.number().required().validateAsync(req.body.id, { convert: false })
-    } catch (err) {
-        next({ code: 400, message: err.message })
-        return
-    }
-    const jwt_res = authJwt(req)
-    if (jwt_res.user.role == 'admin') {
-        const del_res = await User.destroy({
-            where: {
-                id: req.body.id
-            }
-        })
-        res.status(200).json({ code: 1, del_res })
-    } else {
-        next(jwt_res)
-    }
-
+router.delete('/delete', async function (req, res, next) {
+    const result = await User.destroy({
+        where: {
+            id: req.body.id
+        }
+    })
+    res.status(200).json({ code: 200, result, message: "删除用户成功！" })
 })
 
 module.exports = router

@@ -7,6 +7,7 @@ let getStatus = require('./lib/getStatus')
 let permission = require('./lib/permission')
 let addLog = require('./lib/addLog')
 let userInfo = require('./lib/userInfo')
+let qiniu = require("./models/qiniu")
 let app = express()
 
 // parse application/x-www-form-urlencoded
@@ -41,7 +42,7 @@ let auth_router = require('./routers/auth_router')
 let role_auth_router = require('./routers/role_auth_router')
 let log_router = require('./routers/log_router')
 let star_router = require('./routers/star_router')
-let front_router = require('./routers/front_router')
+let frontend_router = require('./routers/frontend_router')
 let music_router = require('./routers/music_router')
 let type_router = require('./routers/type_router')
 
@@ -72,25 +73,35 @@ function formateDate(datetime) {
 
 app.use('/', async (req, res, next) => {
   console.log('**********全局监听开始**********');
-  // 首先判断jwt
-  let jwtResult = await authJwt(req)
-  if (jwtResult.code == 401 && jwtResult.message != '未登录!') {
-    next(jwtResult)
-    return
-  } else {
-    console.log('jwtResult.code')
-    console.log(jwtResult)
-    if (jwtResult.code == 200) {
-      let getStatusResult = await getStatus(jwtResult.userInfo.id)
-      if (getStatusResult.code == 403) {
-        console.log('**********全局监听完成1**********');
-        return next(getStatusResult)
-      }
-      await addLog(jwtResult.userInfo.id, req)
+  if (req.path == '/qiniu/callback') {
+    // 七牛云上传回调特殊处理
+    const callbackAuth = req.headers.authorization
+    if (req.headers.authorization == undefined || !qiniu.authCb(callbackAuth)) {
+      next({ code: 401, message: '非法七牛云回调!' })
+      return
     }
-    userInfo.id = jwtResult.userInfo && jwtResult.userInfo.id
-    console.log('**********全局监听完成2**********');
-    return next()
+    next()
+  } else {
+    // 首先判断jwt
+    let jwtResult = await authJwt(req)
+    if (jwtResult.code == 401 && jwtResult.message != '未登录!') {
+      next(jwtResult)
+      return
+    } else {
+      console.log('jwtResult.code')
+      console.log(jwtResult)
+      if (jwtResult.code == 200) {
+        let getStatusResult = await getStatus(jwtResult.userInfo.id)
+        if (getStatusResult.code == 403) {
+          console.log('**********全局监听完成1**********');
+          return next(getStatusResult)
+        }
+        await addLog(jwtResult.userInfo.id, req)
+      }
+      userInfo.id = jwtResult.userInfo && jwtResult.userInfo.id
+      console.log('**********全局监听完成2**********');
+      return next()
+    }
   }
   // console.log('**********全局监听完成**********');
 })
@@ -107,7 +118,7 @@ app.use('/auth', auth_router)
 app.use('/roleauth', role_auth_router)
 app.use('/log', log_router)
 app.use('/star', star_router)
-app.use('/front', front_router)
+app.use('/frontend', frontend_router)
 app.use('/music', music_router)
 app.use('/type', type_router)
 

@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize')
 const sequelize = require('../config/db')
-const Front = sequelize.define(
-    'front',
+const Frontend = sequelize.define(
+    'frontend',
     {
         id: {
             type: Sequelize.INTEGER,
@@ -9,18 +9,18 @@ const Front = sequelize.define(
             allowNull: false,
             autoIncrement: true
         },
-        front_login: {
+        frontend_login: {
             type: Sequelize.INTEGER,
             defaultValue: 1
         },
-        front_register: {
+        frontend_register: {
             type: Sequelize.INTEGER,
             defaultValue: 1
         },
-        front_about: {
+        frontend_about: {
             type: Sequelize.STRING,
         },
-        front_comment: {
+        frontend_comment: {
             type: Sequelize.INTEGER,
             defaultValue: 0
         },
@@ -35,4 +35,4 @@ const Front = sequelize.define(
 //     console.log('如果表存在 会删除表重新建表')
 //     console.log(res)
 // })
-module.exports = Front
+module.exports = Frontend
