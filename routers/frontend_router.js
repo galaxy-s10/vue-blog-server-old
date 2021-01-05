@@ -5,21 +5,25 @@ var Frontend = require('../models/Frontend')
 var authJwt = require('../lib/authJwt')
 
 // 判断权限
-// router.use((req, res, next) => {
-//     console.log('判断权限');
-//     const validateList = ['/add', '/del']
-//     console.log(validateList.indexOf(req.path.toLowerCase()));
-//     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-//         const jwt_res = authJwt(req)
-//         console.log(jwt_res);
-//         jwt_res.code == 401 ? next(jwt_res) : next()
-//         // 不加return会继续执行if语句外面的代码
-//         return
-//     } else {
-//         next()
-//     }
-//     // console.log('没想到吧，我还会执行');
-// })
+router.use(async (req, res, next) => {
+    let permissionResult
+    switch (req.path.toLowerCase()) {
+        case "add":
+            permissionResult = await permission(userInfo.id, 'ADD_FRONTEND');
+            break;
+        case "delete":
+            permissionResult = await permission(userInfo.id, 'DELETE_FRONTEND');
+            break;
+        case "update":
+            permissionResult = await permission(userInfo.id, 'UPDATE_FRONTEND');
+            break;
+    }
+    if (permissionResult && permissionResult.code == 403) {
+        next(permissionResult)
+    } else {
+        next()
+    }
+})
 
 // 判断参数
 // const validateTag = Joi.object({

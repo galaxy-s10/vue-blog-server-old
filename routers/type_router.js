@@ -4,6 +4,26 @@ var authJwt = require('../lib/authJwt')
 const Joi = require('@hapi/joi')
 var Type = require('../models/Type')
 
+// 判断权限
+router.use(async (req, res, next) => {
+    let permissionResult
+    switch (req.path.toLowerCase()) {
+        case "add":
+            permissionResult = await permission(userInfo.id, 'ADD_ARTICLE_TYPE');
+            break;
+        case "delete":
+            permissionResult = await permission(userInfo.id, 'DELETE_ARTICLE_TYPE');
+            break;
+        case "update":
+            permissionResult = await permission(userInfo.id, 'UPDATE_ARTICLE_TYPE');
+            break;
+    }
+    if (permissionResult && permissionResult.code == 403) {
+        next(permissionResult)
+    } else {
+        next()
+    }
+})
 
 // 获取文章分类列表
 router.get('/pageList', async function (req, res, next) {

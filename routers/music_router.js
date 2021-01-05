@@ -8,6 +8,25 @@ var Music = require('../models/Music')
 const userInfo = require('../lib/userInfo')
 const permission = require('../lib/permission')
 
+router.use(async (req, res, next) => {
+    let permissionResult
+    switch (req.path.toLowerCase()) {
+        case "add":
+            permissionResult = await permission(userInfo.id, 'ADD_MUSIC');
+            break;
+        case "delete":
+            permissionResult = await permission(userInfo.id, 'DELETE_MUSIC');
+            break;
+        case "update":
+            permissionResult = await permission(userInfo.id, 'UPDATE_MUSIC');
+            break;
+    }
+    if (permissionResult && permissionResult.code == 403) {
+        next(permissionResult)
+    } else {
+        next()
+    }
+})
 
 // 判断参数
 // const validateMusic = Joi.object({
@@ -20,6 +39,7 @@ const permission = require('../lib/permission')
 //     description: Joi.string().min(3).max(30).required(),
 //     url: Joi.string().min(10).max(50).required(),
 // }).xor('id')
+
 
 // 获取音乐列表
 router.get('/pageList', async function (req, res) {

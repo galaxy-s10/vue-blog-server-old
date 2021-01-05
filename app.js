@@ -46,31 +46,6 @@ let frontend_router = require('./routers/frontend_router')
 let music_router = require('./routers/music_router')
 let type_router = require('./routers/type_router')
 
-//转换时间格式
-function formateDate(datetime) {
-  function addDateZero(num) {
-    return num < 10 ? "0" + num : num;
-  }
-  let d = new Date(datetime);
-  let formatdatetime =
-    d.getFullYear() +
-    "-" +
-    addDateZero(d.getMonth() + 1) +
-    "-" +
-    addDateZero(d.getDate()) +
-    " " +
-    addDateZero(d.getHours()) +
-    ":" +
-    addDateZero(d.getMinutes()) +
-    ":" +
-    addDateZero(d.getSeconds());
-  return formatdatetime;
-}
-
-
-// console.log(formateDate(beforeDate))
-// console.log(formateDate(nowDate))
-
 app.use('/', async (req, res, next) => {
   console.log('**********全局监听开始**********');
   if (req.path == '/qiniu/callback') {
@@ -88,8 +63,6 @@ app.use('/', async (req, res, next) => {
       next(jwtResult)
       return
     } else {
-      console.log('jwtResult.code')
-      console.log(jwtResult)
       if (jwtResult.code == 200) {
         let getStatusResult = await getStatus(jwtResult.userInfo.id)
         if (getStatusResult.code == 403) {

@@ -13,20 +13,24 @@ var authJwt = require('../lib/authJwt')
 const permission = require('../lib/permission')
 
 // 判断权限
-router.use((req, res, next) => {
-    console.log('判断权限');
-    const validateList = ['/add', '/del']
-    console.log(validateList.indexOf(req.path.toLowerCase()));
-    if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-        const jwt_res = authJwt(req)
-        console.log(jwt_res);
-        jwt_res.code == 401 ? next(jwt_res) : next()
-        // 不加return会继续执行if语句外面的代码
-        return
+router.use(async (req, res, next) => {
+    let permissionResult
+    switch (req.path.toLowerCase()) {
+        case "add":
+            permissionResult = await permission(userInfo.id, 'ADD_TAG');
+            break;
+        case "delete":
+            permissionResult = await permission(userInfo.id, 'DELETE_TAG');
+            break;
+        case "update":
+            permissionResult = await permission(userInfo.id, 'UPDATE_TAG');
+            break;
+    }
+    if (permissionResult && permissionResult.code == 403) {
+        next(permissionResult)
     } else {
         next()
     }
-    // console.log('没想到吧，我还会执行');
 })
 
 // 判断参数

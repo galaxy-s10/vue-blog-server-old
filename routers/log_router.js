@@ -5,22 +5,6 @@ let Log = require('../models/Log')
 let User = require('../models/User')
 var authJwt = require('../lib/authJwt')
 
-// 判断权限
-// router.use((req, res, next) => {
-//     console.log('判断权限');
-//     const validateList = ['/add', '/del']
-//     console.log(validateList.indexOf(req.path.toLowerCase()));
-//     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-//         const jwt_res = authJwt(req)
-//         console.log(jwt_res);
-//         jwt_res.code == 401 ? next(jwt_res) : next()
-//         // 不加return会继续执行if语句外面的代码
-//         return
-//     } else {
-//         next()
-//     }
-//     // console.log('没想到吧，我还会执行');
-// })
 
 // 判断参数
 // const validateTag = Joi.object({

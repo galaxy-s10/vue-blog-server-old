@@ -1,7 +1,7 @@
-const Sequelize = require('sequelize')
-const sequelize = require('../config/db')
+const Sequelize = require("sequelize")
+const sequelize = require("../config/db")
 const Auth = sequelize.define(
-    'auth',
+    "auth",
     {
         id: {
             type: Sequelize.INTEGER,
@@ -11,9 +11,11 @@ const Auth = sequelize.define(
         },
         auth_name: {
             type: Sequelize.STRING(50),
+            allowNull: false,
         },
         auth_description: {
             type: Sequelize.STRING(50),
+            allowNull: false,
         },
         p_id: {
             type: Sequelize.INTEGER,
@@ -25,7 +27,7 @@ const Auth = sequelize.define(
     }
 )
 // Auth.sync({ force: true }).then((res) => {
-//     console.log('// 如果表存在 会删除表重新建表')
+//     console.log("// 如果表存在 会删除表重新建表")
 //     console.log(res)
 // })
 module.exports = Auth

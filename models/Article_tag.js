@@ -1,7 +1,7 @@
-const Sequelize = require('sequelize')
-const sequelize = require('../config/db')
+const Sequelize = require("sequelize")
+const sequelize = require("../config/db")
 const Article_tag = sequelize.define(
-    'article_tag',
+    "article_tag",
     {
         id: {
             type: Sequelize.INTEGER,
@@ -11,9 +11,11 @@ const Article_tag = sequelize.define(
         },
         article_id: {
             type: Sequelize.INTEGER,
+            allowNull: false,
         },
         tag_id: {
             type: Sequelize.INTEGER,
+            allowNull: false,
         },
     },
     {

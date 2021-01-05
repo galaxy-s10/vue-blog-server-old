@@ -16,21 +16,25 @@ const userInfo = require('../lib/userInfo')
 const permission = require('../lib/permission')
 
 // 判断权限
-// router.use((req, res, next) => {
-//     console.log('判断权限');
-//     const validateList = ['/add', '/del', '/edit']
-//     console.log(validateList.indexOf(req.path.toLowerCase()));
-//     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-//         const jwt_res = authJwt(req)
-//         console.log(jwt_res);
-//         jwt_res.code == 401 ? next(jwt_res) : next()
-//         // 不加return会继续执行if语句外面的代码
-//         return
-//     } else {
-//         next()
-//     }
-//     // console.log('没想到吧，我还会执行');
-// })
+router.use(async (req, res, next) => {
+    let permissionResult
+    switch (req.path.toLowerCase()) {
+        case "add":
+            permissionResult = await permission(userInfo.id, 'ADD_ARTICLE');
+            break;
+        case "delete":
+            permissionResult = await permission(userInfo.id, 'DELETE_ARTICLE');
+            break;
+        case "update":
+            permissionResult = await permission(userInfo.id, 'UPDATE_ARTICLE');
+            break;
+    }
+    if (permissionResult && permissionResult.code == 403) {
+        next(permissionResult)
+    } else {
+        next()
+    }
+})
 
 // 判断参数
 // const validateArticle = Joi.object({
@@ -55,33 +59,6 @@ const permission = require('../lib/permission')
 //     click: Joi.number(),
 //     tagList: Joi.array().required()
 // }).xor('img').xor('id')
-
-
-// // 文章列表
-// router.get('/', async function (req, res, next) {
-//     var { ordername, orderby } = req.query
-//     if (ordername && orderby) {
-//         var ordername = ordername.replace(/\'/g, "")
-//         var orderby = orderby.replace(/\'/g, "")
-//         var list = await Article.findAndCountAll(
-//             {
-//                 order: [
-//                     [
-//                         ordername,
-//                         orderby
-//                     ]
-//                 ]
-//             }
-//         )
-//     } else {
-//         var list = await Article.findAndCountAll()
-//     }
-
-//     res.json({
-//         list
-//     })
-// })
-
 
 
 // 获取文章列表
@@ -132,9 +109,6 @@ router.get('/pageList', async function (req, res, next) {
     // 如果没有权限只能看已发布的文章
     // 有权限可以查看所有文章
     let permissionResult = await permission(userInfo.id, 'SELECT_ARTICLE')
-
-    console.log('permissionResult')
-    console.log(permissionResult)
     if (status != undefined) {
         if (!permissionResult) {
             whereData['status'] = 1
@@ -155,7 +129,6 @@ router.get('/pageList', async function (req, res, next) {
             ordername, orderby
         ])
     }
-    // if ( {
     var { count, rows } = await Article.findAndCountAll({
         where: {
             ...whereData,
@@ -199,7 +172,6 @@ router.get('/pageList', async function (req, res, next) {
         distinct: true,
     })
     return res.status(200).json({ whereData1, code: 200, count, rows, message: '获取文章列表成功！' })
-    // }
 })
 
 
@@ -212,20 +184,21 @@ router.post('/add', async function (req, res, next) {
     //     return
     // }
     let user_id = userInfo.id;
-    let permissionResult = await permission(userInfo.id, 'SELECT_ARTICLE')
-
+    let permissionResult = await permission(userInfo.id, 'ADD_ARTICLE')
+    console.log('permissionResultpermissionResultpermissionResult');
+    console.log(permissionResult);
+    if (permissionResult.code == 403) {
+        next(permissionResult)
+        return
+    }
     const { title, img, type_id, is_comment, status, content, click, tags } = req.body
-    const jwt_res = authJwt(req)
-    // if (jwt_res.user.role == 'admin') {
     let aaa = await Article.create({
         title, img, is_comment, status, content, click
     })
-    // let bbb = await Tag.findAll({ where: { id: tagList } })
     let ccc = aaa.setTags(tags)
     let ddd = aaa.setTypes([type_id])
     let eee = aaa.setUsers([user_id])
     res.status(200).json({ code: 200, ccc, message: '发表文章成功！' })
-
     // } else {
     // next(jwt_res)
     // return
@@ -242,15 +215,8 @@ router.delete('/delete', async function (req, res, next) {
         return
     }
     const jwt_res = authJwt(req)
-    if (jwt_res.user.role == 'admin') {
-        let find_article = await Article.findByPk(req.body.id)
-        let delelte_tag = await find_article.setTags([])
-        let delelte_article = await find_article.destroy()
-        res.status(200).json({ code: 1, delelte_article })
-    } else {
-        next(jwt_res)
-        return
-    }
+    next(jwt_res)
+    return
 })
 
 // 查找文章

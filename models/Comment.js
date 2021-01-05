@@ -1,7 +1,7 @@
-const Sequelize = require('sequelize')
-const sequelize = require('../config/db')
+const Sequelize = require("sequelize")
+const sequelize = require("../config/db")
 const Comment = sequelize.define(
-    'comment',
+    "comment",
     {
         id: {
             type: Sequelize.INTEGER,
@@ -11,12 +11,15 @@ const Comment = sequelize.define(
         },
         article_id: {
             type: Sequelize.INTEGER,
+            defaultValue: -1
         },
         from_user_id: {
             type: Sequelize.INTEGER,
+            allowNull: false,
         },
         to_comment_id: {
             type: Sequelize.INTEGER,
+            defaultValue: -1
         },
         to_user_id: {
             type: Sequelize.INTEGER,

@@ -9,29 +9,27 @@ var User_role = require('../models/User_role')
 var Role_auth = require('../models/Role_auth')
 const permission = require('../lib/permission')
 const userInfo = require('../lib/userInfo')
+
 // 判断权限
-// router.use('/', async (req, res, next) => {
-//     console.log('判断权限');
-//     const validateList = ['/list']
-//     if (validateList.indexOf(req.path.toLowerCase()) != -1) {
-//         const jwt_res = await authJwt(req)
-//         console.log('jwt_res')
-//         console.log(jwt_res)
-//         if (jwt_res.code == 401) {
-//             console.log(jwt_res.message);
-//             next(jwt_res)
-//         } else {
-//             console.log('合法token');
-//             next()
-//         }
-//         // 不加return会继续执行if语句外面的代码
-//         return
-//     } else {
-//         next()
-//         return
-//     }
-//     // console.log('没想到吧，我还会执行');
-// })
+router.use(async (req, res, next) => {
+    let permissionResult
+    switch (req.path.toLowerCase()) {
+        case "add":
+            permissionResult = await permission(userInfo.id, 'ADD_AUTH');
+            break;
+        case "delete":
+            permissionResult = await permission(userInfo.id, 'DELETE_AUTH');
+            break;
+        case "update":
+            permissionResult = await permission(userInfo.id, 'UPDATE_AUTH');
+            break;
+    }
+    if (permissionResult && permissionResult.code == 403) {
+        next(permissionResult)
+    } else {
+        next()
+    }
+})
 
 // 判断参数
 const validateLink = Joi.object({
@@ -106,7 +104,7 @@ router.get('/findParentAuth', async function (req, res) {
 })
 
 // 修改某个权限
-router.put('/editAuth', async function (req, res,next) {
+router.put('/editAuth', async function (req, res, next) {
     let { id, p_id, auth_name, auth_description } = req.body
     console.log(id, p_id, auth_name, auth_description)
     let permissionResult = await permission(userInfo.id, 'UPDATE_AUTH')
@@ -131,7 +129,7 @@ router.put('/editAuth', async function (req, res,next) {
 })
 
 // 新增权限
-router.post('/addAuth', async function (req, res,next) {
+router.post('/addAuth', async function (req, res, next) {
     let { id, p_id, auth_name, auth_description } = req.body
     let permissionResult = await permission(userInfo.id, 'ADD_AUTH')
     console.log('permissionResultpermissionResult')
@@ -151,7 +149,7 @@ router.post('/addAuth', async function (req, res,next) {
 })
 
 // 删除权限
-router.delete('/delAuth', async function (req, res,next) {
+router.delete('/delAuth', async function (req, res, next) {
     let { id } = req.body
     let permissionResult = await permission(userInfo.id, 'DELETE_AUTH')
     console.log('permissionResultpermissionResult')
