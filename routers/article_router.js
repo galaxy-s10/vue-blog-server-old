@@ -171,7 +171,7 @@ router.get('/pageList', async function (req, res, next) {
         // ],
         distinct: true,
     })
-    return res.status(200).json({ whereData1, code: 200, count, rows, message: '获取文章列表成功！' })
+    return res.status(200).json({ code: 200, count, rows, message: '获取文章列表成功！' })
 })
 
 
@@ -184,39 +184,36 @@ router.post('/add', async function (req, res, next) {
     //     return
     // }
     let user_id = userInfo.id;
-    let permissionResult = await permission(userInfo.id, 'ADD_ARTICLE')
-    console.log('permissionResultpermissionResultpermissionResult');
-    console.log(permissionResult);
+    let permissionResult = await permission(user_id, 'ADD_ARTICLE')
     if (permissionResult.code == 403) {
         next(permissionResult)
         return
     }
     const { title, img, type_id, is_comment, status, content, click, tags } = req.body
-    let aaa = await Article.create({
+    let add_article = await Article.create({
         title, img, is_comment, status, content, click
     })
-    let ccc = aaa.setTags(tags)
-    let ddd = aaa.setTypes([type_id])
-    let eee = aaa.setUsers([user_id])
-    res.status(200).json({ code: 200, ccc, message: '发表文章成功！' })
-    // } else {
-    // next(jwt_res)
-    // return
-    // }
-
+    await add_article.setTags(tags)
+    await add_article.setTypes([type_id])
+    await add_article.setUsers([user_id])
+    res.status(200).json({ code: 200, add_article, message: '发表文章成功！' })
 })
 
 // 删除文章
 router.delete('/delete', async function (req, res, next) {
-    try {
-        await Joi.number().required().validateAsync(req.body.id, { convert: false })
-    } catch (err) {
-        next({ code: 400, message: err.message })
-        return
-    }
-    const jwt_res = authJwt(req)
-    next(jwt_res)
-    return
+    // try {
+    //     await Joi.number().required().validateAsync(req.body.id, { convert: false })
+    // } catch (err) {
+    //     next({ code: 400, message: err.message })
+    //     return
+    // }
+    let delete_article = await Article.findByPk(req.body.id)
+    await delete_article.setTags([])
+    await delete_article.setTypes([])
+    await delete_article.setUsers([])
+    await delete_article.destroy()
+    res.status(200).json({ code: 200, delete_article, message: '删除文章成功！' })
+
 })
 
 // 查找文章
@@ -283,29 +280,12 @@ router.get('/findOne', async function (req, res, next) {
 
 // 修改文章
 router.put('/update', async function (req, res, next) {
-    // try {
-    //     await validateArticle.validateAsync(req.body, { convert: false })
-    // } catch (err) {
-    //     next({ code: 400, message: err.message })
-    //     return
-    // }
-    const { id, title, img, is_comment, status, content, click, tags } = req.body
-    // const newtags = []
-    // tags.forEach((item) => {
-    //     newtags.push(item.id)
-    // })
-    // const jwt_res = authJwt(req)
-    // if (jwt_res.user.role == 'admin') {
-    // let update_tags = await Tag.findAll({ where: { id: newtags } })
-    let find_article = await Article.findByPk(id)
-    let update_article = await find_article.update({ title, img, is_comment, status, content, click })
-    let update_article_result = await find_article.setTags(tags)
+    const { id, title, img, is_comment, status, content, click, tags, type_id } = req.body
+    let update_article = await Article.findByPk(id)
+    await update_article.update({ title, img, is_comment, status, content, click })
+    await update_article.setTags(tags)
+    await add_article.setTypes([type_id])
     res.status(200).json({ code: 200, update_article_result, message: '修改文章成功！' })
-    // } else {
-    //     next(jwt_res)
-    //     return
-    // }
-
 })
 
 module.exports = router

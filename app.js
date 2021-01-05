@@ -49,13 +49,9 @@ let type_router = require('./routers/type_router')
 app.use('/', async (req, res, next) => {
   console.log('**********全局监听开始**********');
   if (req.path == '/qiniu/callback') {
-    // 七牛云上传回调特殊处理
-    const callbackAuth = req.headers.authorization
-    if (req.headers.authorization == undefined || !qiniu.authCb(callbackAuth)) {
-      next({ code: 401, message: '非法七牛云回调!' })
-      return
-    }
+
     next()
+    // return 
   } else {
     // 首先判断jwt
     let jwtResult = await authJwt(req)

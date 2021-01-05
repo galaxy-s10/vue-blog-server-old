@@ -24,6 +24,7 @@ const User = sequelize.define(
         },
         avatar: {
             type: Sequelize.STRING(100),
+            defaultValue: null
         },
         title: {
             type: Sequelize.STRING(50),
@@ -31,6 +32,7 @@ const User = sequelize.define(
         },
         token: {
             type: Sequelize.STRING,
+            defaultValue: null
         },
     },
     {

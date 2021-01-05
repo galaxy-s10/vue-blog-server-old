@@ -76,26 +76,10 @@ router.post("/register", async function (req, res, next) {
         })
     }
 })
+
 // 新增用户
 router.post("/add", async function (req, res, next) {
-    try {
-        await validateUser.validateAsync(req.body, {
-            convert: false
-        })
-    } catch (err) {
-        next({
-            code: 400,
-            message: err.message
-        })
-        return
-    }
-    const {
-        username,
-        password,
-        role,
-        avatar,
-        title
-    } = req.body
+    const { username, password, avatar, title } = req.body
     const list = await User.findOne({
         attributes: ["username"],
         where: {

@@ -4,12 +4,14 @@ const { accessKey, secretKey } = require('../config/secret')
 var ppp = {
     // 获取七牛云凭证
     getQiniuToken: function () {
+        console.log('获取七牛云凭证')
         var mac = new qiniu.auth.digest.Mac(accessKey, secretKey)
         // const mac = new qiniu.auth.digest.Mac(QINIU_ACCESS_KEY, QINIU_SECRET_KEY)
         const options = {
             scope: 'hssblog',
+            expires: 20, //过期时间为20秒
             callbackUrl: 'http://47.100.90.12/api/qiniu/callback',
-            callbackBody: '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)"}',
+            callbackBody: '{"key":"$(key)","hash":"$(etag)","fsize":$(fsize),"bucket":"$(bucket)","user_id":$(x:user_id)}',
             callbackBodyType: 'application/json'
         };
         const putPolicy = new qiniu.rs.PutPolicy(options)
