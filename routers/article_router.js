@@ -19,13 +19,13 @@ const permission = require('../lib/permission')
 router.use(async (req, res, next) => {
     let permissionResult
     switch (req.path.toLowerCase()) {
-        case "add":
+        case "/add":
             permissionResult = await permission(userInfo.id, 'ADD_ARTICLE');
             break;
-        case "delete":
+        case "/delete":
             permissionResult = await permission(userInfo.id, 'DELETE_ARTICLE');
             break;
-        case "update":
+        case "/update":
             permissionResult = await permission(userInfo.id, 'UPDATE_ARTICLE');
             break;
     }
@@ -110,14 +110,14 @@ router.get('/pageList', async function (req, res, next) {
     // 有权限可以查看所有文章
     let permissionResult = await permission(userInfo.id, 'SELECT_ARTICLE')
     if (status != undefined) {
-        if (!permissionResult) {
+        if (permissionResult.code == 403) {
             whereData['status'] = 1
         } else {
             whereData['status'] = status
         }
 
     } else {
-        if (!permissionResult) {
+        if (permissionResult.code == 403) {
             whereData['status'] = 1
         }
     }
@@ -171,7 +171,7 @@ router.get('/pageList', async function (req, res, next) {
         // ],
         distinct: true,
     })
-    return res.status(200).json({ code: 200, count, rows, message: '获取文章列表成功！' })
+    return res.status(200).json({ code: 200, count, rows, message: '获取文章列表成功!' })
 })
 
 
@@ -196,7 +196,7 @@ router.post('/add', async function (req, res, next) {
     await add_article.setTags(tags)
     await add_article.setTypes([type_id])
     await add_article.setUsers([user_id])
-    res.status(200).json({ code: 200, add_article, message: '发表文章成功！' })
+    res.status(200).json({ code: 200, add_article, message: '发表文章成功!' })
 })
 
 // 删除文章
@@ -212,7 +212,7 @@ router.delete('/delete', async function (req, res, next) {
     await delete_article.setTypes([])
     await delete_article.setUsers([])
     await delete_article.destroy()
-    res.status(200).json({ code: 200, delete_article, message: '删除文章成功！' })
+    res.status(200).json({ code: 200, delete_article, message: '删除文章成功!' })
 
 })
 
@@ -284,8 +284,8 @@ router.put('/update', async function (req, res, next) {
     let update_article = await Article.findByPk(id)
     await update_article.update({ title, img, is_comment, status, content, click })
     await update_article.setTags(tags)
-    await add_article.setTypes([type_id])
-    res.status(200).json({ code: 200, update_article_result, message: '修改文章成功！' })
+    await update_article.setTypes([type_id])
+    res.status(200).json({ code: 200, update_article, message: '修改文章成功!' })
 })
 
 module.exports = router

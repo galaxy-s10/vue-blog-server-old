@@ -14,13 +14,13 @@ const userInfo = require('../lib/userInfo')
 router.use(async (req, res, next) => {
     let permissionResult
     switch (req.path.toLowerCase()) {
-        case "add":
+        case "/add":
             permissionResult = await permission(userInfo.id, 'ADD_AUTH');
             break;
-        case "delete":
+        case "/delete":
             permissionResult = await permission(userInfo.id, 'DELETE_AUTH');
             break;
-        case "update":
+        case "/update":
             permissionResult = await permission(userInfo.id, 'UPDATE_AUTH');
             break;
     }

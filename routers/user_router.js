@@ -18,13 +18,13 @@ const authJwt = require("../lib/authJwt");
 router.use(async (req, res, next) => {
     let permissionResult
     switch (req.path.toLowerCase()) {
-        case "add":
+        case "/add":
             permissionResult = await permission(userInfo.id, "ADD_USER");
             break;
-        case "delete":
+        case "/delete":
             permissionResult = await permission(userInfo.id, "DELETE_USER");
             break;
-        case "update":
+        case "/update":
             permissionResult = await permission(userInfo.id, "UPDATE_USER");
             break;
     }
@@ -64,11 +64,12 @@ router.post("/register", async function (req, res, next) {
     })
     // 查询是否同名用户
     if (!bool) {
-        const result = await User.create({
+        const add_user = await User.create({
             username,
             password,
         })
-        res.status(200).json({ code: 200, result, message: "注册成功!" })
+        add_user.setRoles([8])
+        res.status(200).json({ code: 200, add_user, message: "注册成功!" })
     } else {
         next({
             code: 400,

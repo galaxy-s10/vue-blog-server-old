@@ -12,13 +12,13 @@ const permission = require('../lib/permission')
 router.use(async (req, res, next) => {
     let permissionResult
     switch (req.path.toLowerCase()) {
-        case "token":
+        case "/token":
             permissionResult = await permission(userInfo.id, "UPLOAD_QINIU");
             break;
-        case "delete":
+        case "/delete":
             permissionResult = await permission(userInfo.id, "DELETE_QINIU");
             break;
-        case "update":
+        case "/update":
             permissionResult = await permission(userInfo.id, "UPDATE_QINIU");
             break;
     }
@@ -62,7 +62,7 @@ router.post('/callback', async function (req, res, next) {
         let result = await Qiniu_data.create({
             ...temp
         })
-        res.status(200).json({ code: 200, ...req.body, message: `上传图片成功,每天能上传10次,今天还可${10 - nowDayUploadNums.count}次` })
+        res.status(200).json({ code: 200, ...result, message: `上传图片成功,每天能上传10次,今天还剩${10 - 1 - nowDayUploadNums.count}次` })
     }
 
 })
