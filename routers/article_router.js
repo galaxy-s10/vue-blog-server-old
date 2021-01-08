@@ -220,6 +220,8 @@ router.delete('/delete', async function (req, res, next) {
 router.get('/findOne', async function (req, res, next) {
     var { id } = req.query
     var currentId = userInfo.id || -2
+    console.log('66666');
+    console.log(currentId);
     // 查询某篇文章，点击量+1
     var result = await Article.findOne({
         where: {

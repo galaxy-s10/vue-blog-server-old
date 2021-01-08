@@ -257,6 +257,8 @@ router.get('/childrenPage', async function (req, res) {
 // 留言板留言列表
 router.get('/comment', async function (req, res) {
     var currentId = userInfo.id || -2
+    console.log('currentIdcurrentIdcurrentId');
+    console.log(currentId);
     let { article_id, nowPage, pageSize, childrenNowPage, childrenPageSize } = req.query
     var allCount = await Comment.findAndCountAll({ where: { article_id } })
     var { count, rows } = await Comment.findAndCountAll({
