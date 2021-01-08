@@ -147,7 +147,8 @@ router.post("/add", async function (req, res, next) {
 router.post("/login", async function (req, res, next) {
     var {
         username,
-        password
+        password,
+        exp,
     } = req.body
     // console.log(username, password)
     if (username && password) {
@@ -173,7 +174,8 @@ router.post("/login", async function (req, res, next) {
             let created = Math.floor(Date.now() / 1000);
             const token = jwt.sign({
                 userInfo,
-                exp: created + 60 * 60 * 24, //24小时后过期
+                // 默认24小时后过期
+                exp: created + (60 * 60 * exp),
                 // exp: created + 60 * 60, //一小时后过期
             }, secret)
             let {
