@@ -128,4 +128,18 @@ router.delete('/delete', function (req, res, next) {
     })
 })
 
+// 插入七牛云
+router.post('/insert', async function (req, res, next) {
+    // const jwt_res = authJwt(req)
+    // if (jwt_res.code == 401) {
+    //     next(jwt_res)
+    //     return
+    // }
+    let insert_result = await Qiniu_data.create({
+        ...req.body, user_id: 1
+    })
+    res.status(200).json({ code: 200, insert_result, message: 'insert qiniu_data Ok!' })
+
+})
+
 module.exports = router
