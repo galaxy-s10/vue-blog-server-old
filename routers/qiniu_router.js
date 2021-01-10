@@ -3,6 +3,7 @@ var router = express.Router()
 const Sequelize = require('sequelize')
 const Op = Sequelize.Op;
 var qiniu = require('../models/qiniu')
+var User = require('../models/User')
 var Qiniu_data = require('../models/Qiniu_data')
 const authJwt = require('../lib/authJwt');
 const userInfo = require('../lib/userInfo')
@@ -57,8 +58,6 @@ router.post('/callback', async function (req, res, next) {
                 },
             }
         })
-        // console.log(object)
-        // console.log({...req.body})
         let result = await Qiniu_data.create({
             ...temp
         })
@@ -73,15 +72,82 @@ router.put('/updateQiniu', async function (req, res, next) {
     console.log(srcKey, destKey);
     try {
         const ress = await qiniu.updateQiniu('hssblog', srcKey, 'hssblog', destKey)
-        res.status(200).json({ code: 200, ...ress, message: '更新七牛云数据成功！' })
+        const putTime = parseInt(new Date(ress.respInfo.headers.date).getTime() + "0000")
+        const update_result = await Qiniu_data.update(
+            {
+                key: destKey,
+                putTime,
+            },
+            {
+                where: {
+                    key: srcKey
+                }
+            })
+        res.status(200).json({ code: 200, ...ress, update_result, message: '更新七牛云数据成功！' })
     } catch (err) {
         res.status(400).json({ code: 400, err, message: '更新七牛云数据失败！' })
     }
 
 })
 
+// 获取数据库qiniu_data列表
+router.get('/pageList', async function (req, res, next) {
+    var { nowPage, pageSize, keyword, updatedAt } = req.query
+    var offset = parseInt((nowPage - 1) * pageSize)
+    var limit = parseInt(pageSize)
+    let whereData = {}
+    if (updatedAt) {
+        whereData['updatedAt'] = { [Op.between]: [updatedAt, `${updatedAt} 23:59:59`] }
+    }
+    let search = [
+        {
+            key: {
+                [Op.like]: '%' + "" + '%'
+            }
+        },
+        {
+            mimeType: {
+                [Op.like]: '%' + "" + '%'
+            }
+        }
+    ]
+    if (keyword != undefined) {
+        search = [
+            {
+                key: {
+                    [Op.like]: '%' + keyword + '%'
+                }
+            },
+            {
+                mimeType: {
+                    [Op.like]: '%' + keyword + '%'
+                }
+            }
+        ]
+    }
+    const ress = await Qiniu_data.findAndCountAll({
+        limit: limit,
+        offset: offset,
+        distinct: true,
+        where: {
+            ...whereData,
+            [Op.or]: search
+        },
+        include: [
+            {
+                model: User,
+                attributes: { exclude: ['password', 'token'] },
+            }
+        ],
+        // where: { user_id: id },
+        // 去重
+        distinct: true,
+    })
+    res.status(200).json({ code: 200, ...ress, message: '获取七牛云数据成功！' })
+})
+
 // 获取七牛云指定前缀的文件列表
-router.get('/getList', async function (req, res, next) {
+router.get('/getAllQiniuData', async function (req, res, next) {
     const ress = await qiniu.getList(req.query.prefix, req.query.limit, req.query.marker)
     res.status(200).json({ code: 200, ...ress, message: '获取七牛云数据成功！' })
 })
@@ -103,10 +169,8 @@ router.get('/token', async function (req, res, next) {
             },
         }
     })
-    console.log('nowDayUploadNums')
-    console.log(nowDayUploadNums)
     if (nowDayUploadNums.count > 10) {
-        res.status(200).json({ code: 200, ...req.body, message: '你今天没有上传次数了!' })
+        res.status(200).json({ code: 200, message: '你今天没有上传文件次数了!' })
     } else {
         const uploadToken = qiniu.getQiniuToken()
         res.status(200).json({ code: 200, uploadToken, message: '获取七牛云token成功!' })

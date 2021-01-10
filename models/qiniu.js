@@ -51,13 +51,13 @@ var ppp = {
         config.zone = qiniu.zone.Zone_z0;
         var bucketManager = new qiniu.rs.BucketManager(mac, config);
         var bucket = "hssblog";
-        var options = {
-            prefix,
-            limit,
-            marker
-        };
+        // var options = {
+        //     prefix,
+        //     limit,
+        //     marker
+        // };
+        var options = {};
         return new Promise((resolve, reject) => {
-
             bucketManager.listPrefix(bucket, options, function (err, respBody, respInfo) {
                 if (respInfo.statusCode == 200) {
                     resolve({ respInfo })

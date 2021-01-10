@@ -90,3 +90,5 @@ Article_type.belongsTo(Type, { foreignKey: 'type_id', targetKey: 'id' })
 
 Article.belongsToMany(Type, { through: Article_type, foreignKey: 'article_id', otherKey: 'type_id' })
 Type.belongsToMany(Article, { through: Article_type, foreignKey: 'type_id', otherKey: 'article_id' })
+
+Qiniu_data.belongsTo(User, { foreignKey: 'user_id', targetKey: 'id' })
