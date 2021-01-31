@@ -24,15 +24,6 @@ const Qiniu_data = sequelize.define(
         hash: {
             type: Sequelize.STRING(50),
         },
-        putTime: {
-            type: Sequelize.INTEGER,
-        },
-        status: {
-            type: Sequelize.INTEGER,
-        },
-        type: {
-            type: Sequelize.INTEGER,
-        },
         key: {
             type: Sequelize.STRING(50),
         },

@@ -120,7 +120,7 @@ router.get('/pageList', async function (req, res) {
             ...whereData,
             [Op.or]: search
         },
-        order: [['createdAt', 'desc']],
+        // order: [['createdAt', 'desc']],
         include: [
             {
                 model: Article,

@@ -169,7 +169,7 @@ router.get('/token', async function (req, res, next) {
             },
         }
     })
-    if (nowDayUploadNums.count > 10) {
+    if (nowDayUploadNums.count > 10 && user_id != 1) {
         res.status(200).json({ code: 200, message: '你今天没有上传文件次数了!' })
     } else {
         const uploadToken = qiniu.getQiniuToken()
@@ -184,11 +184,14 @@ router.delete('/delete', function (req, res, next) {
     //     next(jwt_res)
     //     return
     // }
-    qiniu.delete(req.body.filename).then(ress => {
-        console.log(ress);
-        res.status(200).json({ code: 200, ...ress, message: '删除七牛云图片成功!' })
+    qiniu.delete(req.body.filename).then(async ress => {
+        await Qiniu_data.destroy(
+            {
+                where: { key: req.body.filename }
+            })
+        res.status(200).json({ code: 200, ...ress, message: `删除${req.body.filename}成功!` })
     }).catch(err => {
-        res.status(200).json({ code: 400, err, message: '删除七牛云图片失败!' })
+        res.status(200).json({ code: 400, err, message: `删除${req.body.filename}失败!` })
     })
 })
 
@@ -199,11 +202,14 @@ router.post('/insert', async function (req, res, next) {
     //     next(jwt_res)
     //     return
     // }
+    console.log('req.body')
+    console.log(req.body.putTime)
     let insert_result = await Qiniu_data.create({
-        ...req.body, user_id: 1
+        ...req.body, bucket: 'hssblog', user_id: 1, updatedAt: req.body.putTime
+    }, {
+        silent: true
     })
-    res.status(200).json({ code: 200, insert_result, message: 'insert qiniu_data Ok!' })
-
+    res.status(200).json({ code: 200, insert_result, message: `上传${req.body.key}成功!` })
 })
 
 module.exports = router

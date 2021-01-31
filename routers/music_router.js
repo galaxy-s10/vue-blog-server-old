@@ -98,7 +98,7 @@ router.get('/pageList', async function (req, res) {
         limit: limit,
         offset: offset,
         distinct: true,
-        order: [['createdAt', 'desc']],
+        // order: [['createdAt', 'desc']],
         where: {
             ...whereData,
             [Op.or]: search

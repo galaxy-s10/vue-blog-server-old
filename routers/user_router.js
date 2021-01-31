@@ -3,12 +3,17 @@ const MD5 = require("crypto-js/md5");
 const jwt = require("jsonwebtoken");
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
-const { secret } = require("../config/secret")
+const {
+    secret
+} = require("../config/secret")
 const Joi = require("@hapi/joi")
 const router = express.Router()
 const User = require("../models/User")
 const Role = require("../models/Role")
 const Star = require("../models/Star")
+var Comment = require('../models/Comment')
+var Article = require('../models/Article')
+// var User_article = require('../models/User_article')
 const User_role = require("../models/User_role");
 const userInfo = require("../lib/userInfo")
 const permission = require("../lib/permission")
@@ -57,10 +62,15 @@ router.use(async (req, res, next) => {
 
 // 注册用户
 router.post("/register", async function (req, res, next) {
-    const { username, password } = req.body
+    const {
+        username,
+        password
+    } = req.body
     const bool = await User.findOne({
         attributes: ["username"],
-        where: { username }
+        where: {
+            username
+        }
     })
     // 查询是否同名用户
     if (!bool) {
@@ -69,7 +79,11 @@ router.post("/register", async function (req, res, next) {
             password,
         })
         add_user.setRoles([8])
-        res.status(200).json({ code: 200, add_user, message: "注册成功!" })
+        res.status(200).json({
+            code: 200,
+            add_user,
+            message: "注册成功!"
+        })
     } else {
         next({
             code: 400,
@@ -80,7 +94,12 @@ router.post("/register", async function (req, res, next) {
 
 // 新增用户
 router.post("/add", async function (req, res, next) {
-    const { username, password, avatar, title } = req.body
+    const {
+        username,
+        password,
+        avatar,
+        title
+    } = req.body
     const list = await User.findOne({
         attributes: ["username"],
         where: {
@@ -312,12 +331,45 @@ router.get("/pageList", async function (req, res, next) {
     })
 })
 
+// 查询用户网站所有信息
+router.get("/allData", async function (req, res, next) {
+    const detail = await User.findOne({
+        attributes: {
+            exclude: ["token", "password"]
+        },
+        include: [
+            {
+                model: Article
+            },
+            {
+                model: Star
+            },
+        ],
+        where: {
+            id: 1
+        }
+    })
+    res.status(200).json({
+        code: 200,
+        detail,
+        message: "查询用户信息成功!"
+    })
+})
+
 // 查询用户信息
 router.get("/findOne", async function (req, res, next) {
     const detail = await User.findOne({
         attributes: {
             exclude: ["token", "password"]
         },
+        include: [
+            {
+                model: Article
+            },
+            {
+                model: Star
+            },
+        ],
         where: {
             id: req.query.id
         }

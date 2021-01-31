@@ -12,7 +12,7 @@ router.use(async (req, res, next) => {
     console.log(req.path.toLowerCase())
     switch (req.path.toLowerCase()) {
         case "/update":
-            permissionResult = await permission(userInfo.id, 'UPDATE_FRONTEND');
+            permissionResult = await permission(userInfo.id, 'FRONTEND_MANAGE');
             break;
     }
     if (permissionResult && permissionResult.code == 403) {

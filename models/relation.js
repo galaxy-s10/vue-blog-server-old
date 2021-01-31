@@ -83,6 +83,7 @@ Comment.hasMany(Comment, { as: "huifucount", foreignKey: "to_comment_id", source
 // User_article.belongsTo(Article, { foreignKey: 'article_id', targetKey: 'id' })
 // Article.hasOne(User_article, { foreignKey: 'article_id', targetKey: 'id' })
 Article.belongsToMany(User, { through: User_article, foreignKey: 'article_id', otherKey: 'user_id' })
+User.belongsToMany(Article, { through: User_article, foreignKey: 'user_id', otherKey: 'article_id' })
 
 // Type.hasMany(Article_type, { foreignKey: 'tag_id', sourceKey: 'id' })
 Article_type.belongsTo(Article, { foreignKey: 'article_id', targetKey: 'id' })
