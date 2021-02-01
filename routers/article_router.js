@@ -90,6 +90,7 @@ router.get('/pageList', async function (req, res, next) {
         whereData['updatedAt'] = { [Op.between]: [updatedAt, `${updatedAt} 23:59:59`] }
     }
     if (type_id) {
+        console.log('666666');
         whereData1['id'] = type_id
     }
     if (keyword) {
@@ -145,7 +146,7 @@ router.get('/pageList', async function (req, res, next) {
             {
                 model: Type,
                 // as:'xxx',
-                where: whereData1,
+                // where: whereData1,
             },
             {
                 model: Star,
@@ -169,7 +170,7 @@ router.get('/pageList', async function (req, res, next) {
         required: false,
         // },
         // ],
-        distinct: true,
+        // distinct: true,
     })
     return res.status(200).json({ code: 200, count, rows, message: '获取文章列表成功!' })
 })

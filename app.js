@@ -10,6 +10,8 @@ let userInfo = require('./lib/userInfo')
 let qiniu = require("./models/qiniu")
 let app = express()
 
+
+app.enabled('trust proxy')
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: false, limit: '10mb' }));
@@ -17,6 +19,8 @@ app.use(bodyParser.urlencoded({ extended: false, limit: '10mb' }));
 app.use(bodyParser.json())
 
 app.all("*", function (req, res, next) {
+  console.log('**********');
+  console.log(req.headers);
   //设置允许跨域的域名，*代表允许任意域名跨域
   res.header("Access-Control-Allow-Origin", "*");
   //允许的header类型
@@ -48,7 +52,7 @@ let type_router = require('./routers/type_router')
 
 app.use('/', async (req, res, next) => {
   console.log('**********全局监听开始**********');
-  if (req.path == '/qiniu/callback') {
+  if (req.path == '/qiniu/callback' || req.path == '/log/getPosition') {
 
     next()
     // return 

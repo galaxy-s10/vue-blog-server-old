@@ -349,10 +349,23 @@ router.get("/allData", async function (req, res, next) {
             id: 1
         }
     })
+    // let newreq = req.get({
+    //     plain: true,
+    // })
+    // console.log(req);
+    console.log(req.headers);
     res.status(200).json({
         code: 200,
         detail,
-        message: "查询用户信息成功!"
+        message: "查询用户信息成功!",
+        reqinfo: {
+            api_ip: req.headers['x-real-ip'],
+            api_hostname: req.hostname,
+            api_path: req.path,
+            api_method: req.method,
+            api_query: JSON.stringify(req.query),
+            api_body: JSON.stringify(req.body)
+        }
     })
 })
 

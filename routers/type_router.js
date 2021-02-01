@@ -30,11 +30,20 @@ router.get('/pageList', async function (req, res, next) {
     var { nowPage, pageSize } = req.query
     var offset = parseInt((nowPage - 1) * pageSize)
     var limit = parseInt(pageSize)
-    var { rows, count } = await Type.findAndCountAll({
-        limit: limit,
-        offset: offset,
-        distinct: true,
-    })
+    console.log('获取文章分类列表');
+    console.log(offset,limit);
+    try {
+        var { rows, count } = await Type.findAndCountAll({
+            limit: limit,
+            offset: offset,
+            // distinct: true,
+        })
+        console.log('okkkk');
+    } catch (err) {
+        console.log('nonono');
+        console.log(err);
+    }
+
     res.status(200).json({ code: 200, pageSize, nowPage, lastPage: Math.ceil(count / pageSize), rows, count, message: '获取文章分类列表成功！' })
 })
 

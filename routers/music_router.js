@@ -80,31 +80,37 @@ router.get('/pageList', async function (req, res) {
             }
         ]
     }
-    let permissionResult = await permission(userInfo.id, 'SELECT_MUSIC')
-    if (status != undefined) {
-        if (!permissionResult) {
-            whereData['status'] = 1
-        } else {
-            whereData['status'] = status
-        }
+    try {
+        let permissionResult = await permission(userInfo.id, 'SELECT_MUSIC')
+        console.log('11111');
+        if (status != undefined) {
+            if (!permissionResult) {
+                whereData['status'] = 1
+            } else {
+                whereData['status'] = status
+            }
 
-    } else {
-        if (!permissionResult) {
-            whereData['status'] = 1
+        } else {
+            if (!permissionResult) {
+                whereData['status'] = 1
+            }
         }
+        // return res.json(1)
+        var { count, rows } = await Music.findAndCountAll({
+            limit: limit,
+            offset: offset,
+            order: [['createdAt', 'desc']],
+            where: {
+                ...whereData,
+                [Op.or]: search
+            },
+        })
+        res.status(200).json({ code: 200, count, rows, message: '获取音乐列表成功！' })
+    } catch (err) {
+        console.log('0000');
+        console.log(err);
     }
-    // return res.json(1)
-    var { count, rows } = await Music.findAndCountAll({
-        limit: limit,
-        offset: offset,
-        distinct: true,
-        // order: [['createdAt', 'desc']],
-        where: {
-            ...whereData,
-            [Op.or]: search
-        },
-    })
-    res.status(200).json({ code: 200, count, rows, message: '获取音乐列表成功！' })
+
 
 })
 
