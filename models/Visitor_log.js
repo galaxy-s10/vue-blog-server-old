@@ -15,6 +15,9 @@ const Visitor_log = sequelize.define(
         ip: {
             type: Sequelize.STRING(50),
         },
+        state: {
+            type: Sequelize.INTEGER,
+        },
         data: {
             type: Sequelize.STRING(300),
         },
