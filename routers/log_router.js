@@ -1,6 +1,6 @@
 let express = require('express')
 let router = express.Router()
-const { Op } = require("sequelize");
+const { Op, fn, col, where } = require("sequelize");
 
 const Joi = require('@hapi/joi')
 let Log = require('../models/Log')
@@ -133,34 +133,30 @@ router.get('/getPosition', async function (req, res) {
 
 
 // 获取指定时间范围流量信息
-router.get('/weekDetail', async function (req, res) {
-    // var { nowPage, pageSize } = req.query
-    // var offset = parseInt((nowPage - 1) * pageSize)
-    // var limit = parseInt(pageSize)
-    // let {startDate,endDate} = req.qeury
-
-    // let aaa = await Visitor_log.findAll({
-    //     group: 'ip',
-    //     attributes: ['ip'],
-    //     where: {
-    //         state: 1
-    //     }
-    // })
+router.get('/selectDetail', async function (req, res) {
+    // let bbb = await Visitor_log.count({
     let bbb = await Visitor_log.findAll({
-        attributes: ['ip'],
+        attributes: [
+            [fn('date_format', col('createdAt'), '%Y-%m-%d'), 'date'],
+            [fn('count', col('*')), 'allCountNum'],
+            [fn('count', fn('distinct',col('ip'))), 'allCountPeopleNum'],
+        ],
         where: {
-            state: 1
-        }
+            state: 1,
+            createdAt: {
+                [Op.between]: ['2021-02-03 10:00:00', '2021-02-04 12:00:00']
+            },
+        },
+        // distinct: true,
+        // col: 'ip',
+        // order: [[col('createdAt'), 'desc']],
+        order: [[col('date'), 'desc']],
+        // group: [fn('date_format', col('createdAt'), '%Y-%m-%d')]
+        group: fn('date_format', col('createdAt'), '%Y-%m-%d')
     })
-    res.json({ code: 200, data: {  } })
-    return
-    res.json({
-        code: 200,
-        data: { allVisitorPeople: aaa.length, allVisitorNumber: bbb.length, nowDayAllVisitorPeople: ccc.length, nowDayallVisitorNumber: ddd.length },
-        message: '获取访客数据成功!'
-    })
-    // res.json({ count, rows })
+    res.json({ code: 200, data: { ...bbb } })
 })
+
 
 // 获取历史访客数据（总访客数，总访客量，当天访客数，当天访客量）
 router.get('/detail', async function (req, res) {
