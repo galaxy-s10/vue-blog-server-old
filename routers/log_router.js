@@ -98,7 +98,7 @@ router.get('/getPosition', async function (req, res) {
                 },
             }
         })
-        // 如果在1000毫秒内请求了5次，判断为频繁操作，禁用该账户
+        // 如果在1000毫秒内请求了5次，判断为频繁操作，禁用该ip
         if (apiNum.count > 5) {
             await Visitor_log.update(
                 {
@@ -131,6 +131,36 @@ router.get('/getPosition', async function (req, res) {
     // }
 })
 
+
+// 获取指定时间范围流量信息
+router.get('/weekDetail', async function (req, res) {
+    // var { nowPage, pageSize } = req.query
+    // var offset = parseInt((nowPage - 1) * pageSize)
+    // var limit = parseInt(pageSize)
+    // let {startDate,endDate} = req.qeury
+
+    // let aaa = await Visitor_log.findAll({
+    //     group: 'ip',
+    //     attributes: ['ip'],
+    //     where: {
+    //         state: 1
+    //     }
+    // })
+    let bbb = await Visitor_log.findAll({
+        attributes: ['ip'],
+        where: {
+            state: 1
+        }
+    })
+    res.json({ code: 200, data: {  } })
+    return
+    res.json({
+        code: 200,
+        data: { allVisitorPeople: aaa.length, allVisitorNumber: bbb.length, nowDayAllVisitorPeople: ccc.length, nowDayallVisitorNumber: ddd.length },
+        message: '获取访客数据成功!'
+    })
+    // res.json({ count, rows })
+})
 
 // 获取历史访客数据（总访客数，总访客量，当天访客数，当天访客量）
 router.get('/detail', async function (req, res) {
