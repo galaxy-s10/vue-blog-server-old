@@ -1,3 +1,11 @@
+/*
+ * @Author: your name
+ * @Date: 2021-02-01 09:01:54
+ * @LastEditTime: 2021-02-05 13:29:06
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \hss\vueblog-server\models\relation.js
+ */
 const Article = require('./Article.js')
 const Article_tag = require('./Article_tag.js')
 const Comment = require('./Comment.js')
@@ -12,6 +20,7 @@ const User_role = require('./User_role')
 const Type = require('./Type')
 const Article_type = require('./Article_type')
 const Log = require('./Log')
+const Day_data = require('./Day_data')
 const Visitor_log = require('./Visitor_log')
 const Star = require('./Star')
 const Frontend = require('./Frontend')
@@ -94,3 +103,7 @@ Article.belongsToMany(Type, { through: Article_type, foreignKey: 'article_id', o
 Type.belongsToMany(Article, { through: Article_type, foreignKey: 'type_id', otherKey: 'article_id' })
 
 Qiniu_data.belongsTo(User, { foreignKey: 'user_id', targetKey: 'id' })
+
+// 流量统计
+// Day.hasMany(Visitor_log, { foreignKey: "day2", sourceKey: "createdAt" })
+Visitor_log.belongsTo(Day_data, { foreignKey: "createdAt", sourceKey: "today" })

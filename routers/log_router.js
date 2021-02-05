@@ -1,14 +1,19 @@
 let express = require('express')
 let router = express.Router()
 const { Op, fn, col, where } = require("sequelize");
-
+const sequelize = require('../config/db')
 const Joi = require('@hapi/joi')
 let Log = require('../models/Log')
 let Visitor_log = require('../models/Visitor_log')
+let Day_data = require('../models/Day_data')
 let User = require('../models/User')
 var authJwt = require('../lib/authJwt')
 var request = require('request');
+let { getRangeTime } = require('../lib/utils.js')
 const userInfo = require('../lib/userInfo')
+
+
+console.log(getRangeTime);
 
 // 判断参数
 // const validateTag = Joi.object({
@@ -22,6 +27,7 @@ const userInfo = require('../lib/userInfo')
 
 //转换时间格式
 function formateDate(datetime) {
+    // console.log(new Date('2022-02-04 10:00:00'));
     function addDateZero(num) {
         return num < 10 ? "0" + num : num;
     }
@@ -40,7 +46,7 @@ function formateDate(datetime) {
         addDateZero(d.getSeconds());
     return formatdatetime;
 }
-
+console.log(formateDate('2022-02-03 10:00:00'))
 function format(date) {
     let y = date.getFullYear()
     let m = date.getMonth() + 1
@@ -132,29 +138,119 @@ router.get('/getPosition', async function (req, res) {
 })
 
 
+router.post('/insertDay', async function (req, res) {
+    let sss = getRangeTime('2021-02-01', '2022-02-01')
+
+    // for (let i = 0; i < sss.length; i++) {
+    //     await Day_data.create({
+    //         today:sss[i]
+    //     })
+    // }
+    // sss.forEach(async today => {
+    //     // console.log(today);
+
+    // })
+    // res.json(sss)
+})
+
 // 获取指定时间范围流量信息
-router.get('/selectDetail', async function (req, res) {
-    // let bbb = await Visitor_log.count({
-    let bbb = await Visitor_log.findAll({
+router.get('/test1', async function (req, res) {
+    // let test = await 
+    sequelize.query(`
+    SELECT
+	today,
+	IFNULL(allVisiteTotal, 0) allVisiteTotal,
+	IFNULL(allVisitorTotal, 0) allVisitorTotal #b.dailyVisitorTotal
+	#b.total
+FROM
+	day_data a
+LEFT JOIN (
+	SELECT
+		date_format(
+			visitor_log.createdAt,
+			'%Y-%m-%d'
+		) AS date,
+		count(DISTINCT(ip)) AS allVisitorTotal,
+		count(*) AS allVisiteTotal
+	FROM
+		visitor_log
+	WHERE
+		state = 1
+	AND visitor_log.state = 1
+	GROUP BY
+		date_format(createdAt, '%Y-%m-%d')
+) b ON a.today = b.date
+WHERE
+	a.today BETWEEN date_format(
+		'2021-02-01 00:00:00',
+		'%Y-%m-%d'
+	)
+AND date_format(
+	'2021-02-07 00:00:00',
+	'%Y-%m-%d'
+)
+ORDER BY
+	today ASC`, { plain: false, raw: false }).spread(function (results, metadata) {
+        // Results 会是一个空数组和一个包含受影响行数的metadata 元数据对象
+        res.json({ code: 200, data: { results }, message: "查询流量信息成功!" })
+    })
+    // res.json({ code: 200, data: { test }, message: "查询流量信息成功!" })
+
+})
+
+// 获取指定时间范围流量信息
+router.get('/test', async function (req, res) {
+    let { startDate, endDate, descOrAsc } = req.query
+    let sss = await Visitor_log.findAll({
         attributes: [
             [fn('date_format', col('createdAt'), '%Y-%m-%d'), 'date'],
-            [fn('count', col('*')), 'allCountNum'],
-            [fn('count', fn('distinct',col('ip'))), 'allCountPeopleNum'],
+            [fn('count', col('*')), 'dailyVisiteTotal'],
+            [fn('count', fn('distinct', col('ip'))), 'dailyVisitorTotal'],
+        ],
+        include: [
+            // { model: Day }
+        ],
+        group: [fn('date_format', col('createdAt'), '%Y-%m-%d')]
+    })
+    res.json({ code: 200, data: { sss }, message: "查询流量信息成功!" })
+})
+
+// 获取指定时间范围流量信息
+router.get('/selectDetail', async function (req, res) {
+    let { startDate, endDate, descOrAsc } = req.query
+    startDate = startDate.replace(/-/g, '/')
+    endDate = endDate.replace(/-/g, '/')
+    let allData = await Visitor_log.findAll({
+        attributes: [
+            // [fn('date_format', col('createdAt'), '%Y-%m-%d'), 'date'],
+            [fn('count', col('*')), 'allVisiteTotal'],
+            [fn('count', fn('distinct', col('ip'))), 'allVisitorTotal'],
+        ],
+        where: {
+            state: 1,
+        },
+    })
+    let rangeData = await Visitor_log.findAll({
+        attributes: [
+            [fn('date_format', col('createdAt'), '%Y-%m-%d'), 'date'],
+            [fn('count', col('*')), 'dailyVisiteTotal'],
+            [fn('count', fn('distinct', col('ip'))), 'dailyVisitorTotal'],
         ],
         where: {
             state: 1,
             createdAt: {
-                [Op.between]: ['2021-02-03 10:00:00', '2021-02-04 12:00:00']
+                // [Op.between]: ['2021-02-03 10:00:00', '2021-02-04 12:00:00']
+                [Op.between]: [startDate, endDate]
             },
         },
         // distinct: true,
         // col: 'ip',
         // order: [[col('createdAt'), 'desc']],
-        order: [[col('date'), 'desc']],
-        // group: [fn('date_format', col('createdAt'), '%Y-%m-%d')]
-        group: fn('date_format', col('createdAt'), '%Y-%m-%d')
+        order: [[col('date'), descOrAsc]],
+        group: [fn('date_format', col('createdAt'), '%Y-%m-%d')]
+        // group: fn('date_format', col('createdAt'), '%Y-%m-%d')
     })
-    res.json({ code: 200, data: { ...bbb } })
+    res.json({ code: 200, data: { allData, rangeData }, message: "查询流量信息成功!" })
 })
 
 
