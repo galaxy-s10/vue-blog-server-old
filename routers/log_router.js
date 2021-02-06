@@ -14,6 +14,7 @@ const userInfo = require('../lib/userInfo')
 
 
 console.log(getRangeTime);
+// console.log(sequelize.query('select * from log').spread);
 
 // 判断参数
 // const validateTag = Joi.object({
@@ -46,7 +47,6 @@ function formateDate(datetime) {
         addDateZero(d.getSeconds());
     return formatdatetime;
 }
-console.log(formateDate('2022-02-03 10:00:00'))
 function format(date) {
     let y = date.getFullYear()
     let m = date.getMonth() + 1
@@ -154,8 +154,19 @@ router.post('/insertDay', async function (req, res) {
 })
 
 // 获取指定时间范围流量信息
-router.get('/test1', async function (req, res) {
+router.get('/getRangeVisitInfo', async function (req, res) {
     // let test = await 
+    let { startDate, endDate, order } = req.query
+    let allData = await Visitor_log.findAll({
+        attributes: [
+            // [fn('date_format', col('createdAt'), '%Y-%m-%d'), 'date'],
+            [fn('count', col('*')), 'allVisiteTotal'],
+            [fn('count', fn('distinct', col('ip'))), 'allVisitorTotal'],
+        ],
+        where: {
+            state: 1,
+        },
+    })
     sequelize.query(`
     SELECT
 	today,
@@ -182,19 +193,26 @@ LEFT JOIN (
 ) b ON a.today = b.date
 WHERE
 	a.today BETWEEN date_format(
-		'2021-02-01 00:00:00',
+		'${startDate}',
 		'%Y-%m-%d'
 	)
 AND date_format(
-	'2021-02-07 00:00:00',
+	'${endDate}',
 	'%Y-%m-%d'
 )
 ORDER BY
-	today ASC`, { plain: false, raw: false }).spread(function (results, metadata) {
-        // Results 会是一个空数组和一个包含受影响行数的metadata 元数据对象
-        res.json({ code: 200, data: { results }, message: "查询流量信息成功!" })
-    })
-    // res.json({ code: 200, data: { test }, message: "查询流量信息成功!" })
+    today ${order ? order : 'asc'}`,
+        // { type: sequelize.QueryTypes.SELECT }
+    )
+        .then(([rangeData, metadata]) => {
+            // .then((results) => {
+            // Results 会是一个空数组和一个包含受影响行数的metadata 元数据对象
+            res.json({ code: 200, data: { allData, rangeData }, message: "查询流量信息成功!" })
+        })
+    // .then(([results, metadata]) => {
+    //     // Results 会是一个空数组和一个包含受影响行数的metadata 元数据对象
+    //     res.json({ code: 200, data: { results }, message: "查询流量信息成功!" })
+    // })
 
 })
 
