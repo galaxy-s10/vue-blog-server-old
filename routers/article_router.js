@@ -146,7 +146,7 @@ router.get('/pageList', async function (req, res, next) {
             {
                 model: Type,
                 // as:'xxx',
-                // where: whereData1,
+                where: whereData1,
             },
             {
                 model: Star,
@@ -170,9 +170,18 @@ router.get('/pageList', async function (req, res, next) {
         required: false,
         // },
         // ],
-        // distinct: true,
+        // 这里需要去重。
+        distinct: true,
     })
-    return res.status(200).json({ code: 200, count, rows, message: '获取文章列表成功!' })
+    return res.status(200).json({
+        code: 200,
+        pageSize: pageSize * 1,
+        nowPage: nowPage * 1,
+        lastPage: Math.ceil(count / pageSize),
+        count,
+        rows,
+        message: '获取文章列表成功!'
+    })
 })
 
 

@@ -76,6 +76,7 @@ Star.belongsTo(User, { foreignKey: "from_user_id", targetKey: "id" })
 
 Article.hasMany(Star, { foreignKey: "article_id", sourceKey: "id" })
 User.hasMany(Star, { foreignKey: "to_user_id", sourceKey: "id" })
+User.hasMany(Star, { as:'userHasStar',foreignKey: "to_user_id", sourceKey: "id" })
 
 Comment.hasMany(Star, { foreignKey: "comment_id", sourceKey: "id" })
 
@@ -93,7 +94,12 @@ Comment.hasMany(Comment, { as: "huifucount", foreignKey: "to_comment_id", source
 // User_article.belongsTo(Article, { foreignKey: 'article_id', targetKey: 'id' })
 // Article.hasOne(User_article, { foreignKey: 'article_id', targetKey: 'id' })
 Article.belongsToMany(User, { through: User_article, foreignKey: 'article_id', otherKey: 'user_id' })
+// Article.belongsToMany(User, { through: User_article, as: 'ppp', foreignKey: 'article_id', otherKey: 'user_id' })
 User.belongsToMany(Article, { through: User_article, foreignKey: 'user_id', otherKey: 'article_id' })
+// User.belongsToMany(Article, { through: User_article, as: 'qqq',foreignKey: 'user_id', otherKey: 'article_id' })
+
+User.hasMany(User_article, { foreignKey: "user_id", sourceKey: "id" })
+User_article.belongsTo(User, { foreignKey: "id", sourceKey: "user_id" })
 
 // Type.hasMany(Article_type, { foreignKey: 'tag_id', sourceKey: 'id' })
 Article_type.belongsTo(Article, { foreignKey: 'article_id', targetKey: 'id' })

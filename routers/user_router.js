@@ -18,6 +18,7 @@ const User_role = require("../models/User_role");
 const userInfo = require("../lib/userInfo")
 const permission = require("../lib/permission")
 const authJwt = require("../lib/authJwt");
+const User_article = require("../models/User_article");
 
 // 判断权限
 router.use(async (req, res, next) => {
@@ -29,7 +30,7 @@ router.use(async (req, res, next) => {
         case "/delete":
             permissionResult = await permission(userInfo.id, "DELETE_USER");
             break;
-        case "/update":
+        case "/updateUserAndRole":
             permissionResult = await permission(userInfo.id, "UPDATE_USER");
             break;
     }
@@ -119,7 +120,7 @@ router.post("/add", async function (req, res, next) {
             } else if (jwt_res.code == 200 && jwt_res.user.role == "admin") {
                 const userinfo = await User.create({
                     attributes: {
-                        exclude: ["password"]
+                        exclude: ["password", "token"]
                     },
                     username,
                     passwor,
@@ -134,7 +135,7 @@ router.post("/add", async function (req, res, next) {
         } else {
             const userInfo = await User.create({
                 attributes: {
-                    exclude: ["password"]
+                    exclude: ["password", "token"]
                 },
                 username,
                 password,
@@ -369,6 +370,32 @@ router.get("/allData", async function (req, res, next) {
     })
 })
 
+// 查询是否重名
+router.get("/findDuplicate", async function (req, res, next) {
+    // try {
+    const count = await User.count({
+        where: {
+            username: req.query.username,
+            id: {
+                [Op.ne]: req.query.id
+            }
+        }
+    })
+    res.status(200).json({
+        code: 200,
+        count,
+        message: count == 0 ? "你可使用该昵称" : "已存在相同昵称用户,请重试!"
+    })
+    // } catch (err) {
+    //     console.log(err)
+    //     res.status(400).json({
+    //         code: 400,
+    //         message: err.message
+    //     })
+    // }
+
+})
+
 // 查询用户信息
 router.get("/findOne", async function (req, res, next) {
     const detail = await User.findOne({
@@ -377,15 +404,32 @@ router.get("/findOne", async function (req, res, next) {
         },
         include: [
             {
-                model: Article
+                model: Article,
             },
             {
                 model: Star
             },
+            // {
+            //     model: Star,
+            //     as: 'userHasStar',
+            //     include: [
+            //         {
+            //             model: Article,
+            //         },
+            //     ]
+            // },
+            // {
+            //     model: User_article,
+            //     where: {
+            //         id: 2
+            //     },
+            //     required: false,
+            // },
         ],
         where: {
             id: req.query.id
-        }
+        },
+
     })
     res.status(200).json({
         code: 200,
@@ -396,6 +440,47 @@ router.get("/findOne", async function (req, res, next) {
 
 // 修改用户
 router.put("/update", async function (req, res, next) {
+    let {
+        // id,
+        username,
+        password,
+        title,
+        avatar,
+        status,
+    } = req.body
+    const count = await User.count({
+        where: {
+            username: username,
+            id: {
+                [Op.ne]: userInfo.id
+            }
+        }
+    })
+    if (count == 0) {
+        let find_user = await User.findByPk(userInfo.id)
+        let update_user = await find_user.update({
+            username,
+            password,
+            title,
+            avatar,
+            status
+        })
+        res.status(200).json({
+            code: 200,
+            update_user,
+            message: "修改用户成功!"
+        })
+    } else {
+        res.status(200).json({
+            code: 200,
+            message: "已存在相同昵称用户,请重试!"
+        })
+    }
+
+})
+
+// 修改用户信息和角色
+router.put("/updateUserAndRole", async function (req, res, next) {
     let {
         id,
         username,
@@ -417,7 +502,7 @@ router.put("/update", async function (req, res, next) {
     res.status(200).json({
         code: 200,
         result,
-        message: "修改用户成功!"
+        message: "修改用户信息和角色成功!"
     })
 })
 

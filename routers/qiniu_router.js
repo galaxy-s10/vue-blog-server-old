@@ -61,7 +61,7 @@ router.post('/callback', async function (req, res, next) {
         let result = await Qiniu_data.create({
             ...temp
         })
-        res.status(200).json({ code: 200, ...req.body, message: `上传图片成功,每天能上传10次,今天还剩${10 - 1 - nowDayUploadNums.count}次` })
+        res.status(200).json({ code: 200, ...req.body, message: `上传${temp.key}成功,今天已使用${10 - 1 - nowDayUploadNums.count}/10次机会` })
     }
 
 })

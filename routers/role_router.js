@@ -106,6 +106,23 @@ router.get('/findBrotherRole', async function (req, res) {
     })
 })
 
+// 获取某个用户的角色
+router.get('/getUserRole', async function (req, res) {
+    let { id } = req.query
+    const { rows, count } = await User.findAndCountAll({
+        where: { id },
+        attributes: {
+            exclude: ["password", "token"]
+        },
+        include: [
+            {
+                model: Role,
+                through: { attributes: [] },
+            }
+        ],
+    })
+    res.status(200).json({ count, rows, message: '获取用户角色成功!' })
+})
 
 // 更新某个用户的角色
 router.put('/editUserRole', async function (req, res, next) {
