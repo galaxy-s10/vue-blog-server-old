@@ -49,6 +49,7 @@ let star_router = require('./routers/star_router')
 let frontend_router = require('./routers/frontend_router')
 let music_router = require('./routers/music_router')
 let type_router = require('./routers/type_router')
+let email_router = require('./routers/email_router')
 
 app.use('/', async (req, res, next) => {
   console.log('**********全局监听开始**********');
@@ -94,6 +95,7 @@ app.use('/star', star_router)
 app.use('/frontend', frontend_router)
 app.use('/music', music_router)
 app.use('/type', type_router)
+app.use('/email', email_router)
 
 // 统一处理报错
 app.use('/', (err, req, res, next) => {
