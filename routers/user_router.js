@@ -107,6 +107,7 @@ router.post("/add", async function (req, res, next) {
             username
         }
     })
+    // 这个功能有bug
     // 查询是否同名用户
     if (!list) {
         const jwt_res = authJwt(req)
@@ -123,7 +124,7 @@ router.post("/add", async function (req, res, next) {
                         exclude: ["password", "token"]
                     },
                     username,
-                    passwor,
+                    password,
                     avatar,
                     title
                 })
@@ -194,7 +195,10 @@ router.post("/login", async function (req, res, next) {
             let created = Math.floor(Date.now() / 1000);
             const token = jwt.sign({
                 userInfo,
-                // 默认24小时后过期
+                // exp:1，1小时后过期
+                // exp:2，2小时后过期
+                // exp:3，3小时后过期
+                // ...
                 exp: created + (60 * 60 * exp),
                 // exp: created + 60 * 60, //一小时后过期
             }, secret)

@@ -2,6 +2,7 @@ let express = require('express')
 let router = express.Router()
 const { Op, fn, col, where } = require("sequelize");
 const sequelize = require('../config/db')
+const { hcapi01_APPCODE } = require('../config/secret')
 const Joi = require('@hapi/joi')
 let Log = require('../models/Log')
 let Visitor_log = require('../models/Visitor_log')
@@ -59,7 +60,6 @@ router.get('/getPosition', async function (req, res) {
     // res.header('Access-Control-Allow-Origin', '*');
     // res.header('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Authorization, Accept, X-Requested-With');
     // res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
-    // res.header('Authorization"', "APPCODE a2f93ebc370540ca845f4005a2fd7717");
     console.log('apiNum');
     // console.log(apiNum);
     console.log(req.headers['x-real-ip']);
@@ -77,7 +77,7 @@ router.get('/getPosition', async function (req, res) {
     request({
         url: `http://hcapi01.market.alicloudapi.com/ip?ip=${req.headers['x-real-ip']}`,
         method: 'GET',
-        headers: { 'Content-Type': 'text/json', 'Authorization': "APPCODE a2f93ebc370540ca845f4005a2fd7717" }
+        headers: { 'Content-Type': 'text/json', 'Authorization': `APPCODE ${hcapi01_APPCODE}` }
     }, async function (error, response, body) {
         console.log(JSON.parse(body));
         console.log(JSON.parse(body).data);
