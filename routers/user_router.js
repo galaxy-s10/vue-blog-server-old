@@ -9,6 +9,7 @@ const {
 const Joi = require("@hapi/joi")
 const router = express.Router()
 const User = require("../models/User")
+const Third_user = require("../models/Third_user")
 const Role = require("../models/Role")
 const Star = require("../models/Star")
 var Comment = require('../models/Comment')
@@ -78,6 +79,11 @@ router.post("/register", async function (req, res, next) {
         const add_user = await User.create({
             username,
             password,
+        })
+        const add_third_user = await Third_user.create({
+            userid: add_user.id,
+            platform: 'website',
+            platform_openid: add_user.id,
         })
         add_user.setRoles([8])
         res.status(200).json({
