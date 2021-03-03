@@ -104,7 +104,7 @@ router.get('/pageList', async function (req, res) {
     if (keyword) {
         search = [
             {
-                title: {
+                name: {
                     [Op.like]: '%' + keyword + '%'
                 }
             },

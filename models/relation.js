@@ -77,7 +77,7 @@ Star.belongsTo(User, { foreignKey: "from_user_id", targetKey: "id" })
 
 Article.hasMany(Star, { foreignKey: "article_id", sourceKey: "id" })
 User.hasMany(Star, { foreignKey: "to_user_id", sourceKey: "id" })
-User.hasMany(Star, { as:'userHasStar',foreignKey: "to_user_id", sourceKey: "id" })
+User.hasMany(Star, { as: 'userHasStar', foreignKey: "to_user_id", sourceKey: "id" })
 
 Comment.hasMany(Star, { foreignKey: "comment_id", sourceKey: "id" })
 
@@ -114,3 +114,7 @@ Qiniu_data.belongsTo(User, { foreignKey: 'user_id', targetKey: 'id' })
 // 流量统计
 // Day.hasMany(Visitor_log, { foreignKey: "day2", sourceKey: "createdAt" })
 Visitor_log.belongsTo(Day_data, { foreignKey: "createdAt", sourceKey: "today" })
+
+// 用户多平台
+User.hasMany(Third_user, { foreignKey: "userid", sourceKey: "id" })
+Third_user.belongsTo(User, { foreignKey: "id", sourceKey: "userid" })

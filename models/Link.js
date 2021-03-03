@@ -9,6 +9,12 @@ const Link = sequelize.define(
             allowNull: false,
             autoIncrement: true
         },
+        ip: {
+            type: Sequelize.STRING(50),
+        },
+        email: {
+            type: Sequelize.STRING(100),
+        },
         name: {
             type: Sequelize.STRING(50),
         },

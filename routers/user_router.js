@@ -327,9 +327,10 @@ router.get("/pageList", async function (req, res, next) {
         },
         {
             model: Star,
+        },
+        {
+            model: Third_user,
         }
-
-
         ],
         // 去重
         distinct: true,

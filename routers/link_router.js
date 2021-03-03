@@ -123,6 +123,7 @@ router.get('/pageList', async function (req, res) {
             }
         ]
     }
+    console.log('----------');
     var { count, rows } = await Link.findAndCountAll({
         // order: [['createdAt', 'desc']],
         where: {
@@ -132,7 +133,7 @@ router.get('/pageList', async function (req, res) {
         limit: limit,
         offset: offset,
         // 去重
-        distinct: true,
+        // distinct: true,
     })
     res.status(200).json({ code: 200, count, rows, message: '获取友链列表成功！' })
 
@@ -239,7 +240,7 @@ router.get('/qqlogin', async function (req, res, next) {
             })
             res.cookie('qq_openid', openidAndunionid.openid, token);
             res.cookie('token', token);
-            res.status(200).json({ code: 200, createUser,ppp, get_user_info, userInfo, message: '创建qq用户信息成功!' })
+            res.status(200).json({ code: 200, createUser, ppp, get_user_info, userInfo, message: '创建qq用户信息成功!' })
         } else {
             // 登录过就直接更新user表里面的信息即可
             const userInfo1 = await User.findOne({
@@ -287,15 +288,48 @@ router.post('/add', async function (req, res, next) {
     //     next({ code: 400, message: err.message })
     //     return
     // }
-    // const { name, avatar, description, url, status } = req.body
-    // if (jwt_res.user.role == 'admin') {
-    // console.log(req.headers['x-real-ip'])
-    var result = await Link.create(
-        {
-            ...req.body
+    let nowTime = new Date()
+    let y = nowTime.getFullYear()
+    let m = nowTime.getMonth() + 1
+    let d = nowTime.getDate()
+    let startTime = `${y}-${m}-${d} 00:00:00`
+    let endTime = `${y}-${m}-${d} 23:59:59`
+    var applyCount = await Link.count({
+        where: {
+            ip: req.headers['x-real-ip'],
+            createdAt: {
+                [Op.between]: [startTime, endTime]
+            },
         }
-    )
-    res.status(200).json({ code: 200, result, message: '添加友链成功！' })
+    })
+    if (applyCount >= 3) {
+        res.status(401).json({ code: 401, message: '每天只能申请3次友链~' })
+    } else {
+        console.log(req.headers);
+        var addLinkRes = await Link.create(
+            {
+                ...req.body, status: 0, ip: req.headers['x-real-ip']
+            }
+        )
+        res.status(200).json({ code: 200, addLinkRes, message: '申请友链成功！' })
+        let mailOptions1 = {
+            from: '"自然博客" <2274751790@qq.com>', // sender address
+            to: '2274751790@qq.com', // list of receivers
+            subject: '收到友链申请记录', // Subject line
+            // 发送text或者html格式
+            // text: 'Hello world?', // plain text body
+            html: `<h2>收到:${req.body.name}的友链申请，请及时处理~</h2>` // html body
+        };
+        let emailMode = new sendEmail(mailOptions1)
+        emailMode.send().then(info => {
+            console.log('222', info)
+            // res.status(200).json({ code: 200, info, message: '发送邮件通知博主成功' })
+        }).catch(error => {
+            console.log('1111', error)
+            // res.status(400).json({ code: 400, error, message: '发送邮件通知博主失败' })
+        })
+    }
+
 
     // } else {
     //     next(jwt_res)
@@ -310,16 +344,32 @@ router.put('/update', async function (req, res, next) {
     //     next({ code: 400, message: err.message })
     //     return
     // }
-    const { id, name, avatar, description, url, status } = req.body
+    const { id, ip, email, name, avatar, description, url, status, isSendEmail } = req.body
     // if (jwt_res.user.role == 'admin') {
     var result = await Link.update(
         {
-            name, avatar, description, url, status
+            ip, email, name, avatar, description, url, status
         },
         {
             where: { id }
         })
     res.status(200).json({ code: 200, result, message: '修改友链成功！' })
+    if (isSendEmail) {
+        let mailOptions1 = {
+            from: '"自然博客" <2274751790@qq.com>', // sender address
+            to: email, // list of receivers
+            subject: '申请友链通过审核!', // Subject line
+            // 发送text或者html格式
+            // text: 'Hello world?', // plain text body
+            html: `<h2>你申请的:${name}友链通过了审核~</h2>` // html body
+        };
+        let emailMode = new sendEmail(mailOptions1)
+        emailMode.send().then(info => {
+            console.log('222', info)
+        }).catch(error => {
+            console.log('1111', error)
+        })
+    }
     // } else {
     //     next(jwt_res)
     //     return
