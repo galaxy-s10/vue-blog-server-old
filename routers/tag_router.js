@@ -11,13 +11,17 @@ var User = require('../models/User')
 var Comment = require('../models/Comment')
 var authJwt = require('../lib/authJwt')
 const permission = require('../lib/permission')
+const userInfo = require('../lib/userInfo')
 
 // 判断权限
 router.use(async (req, res, next) => {
     let permissionResult
     switch (req.path.toLowerCase()) {
         case "/add":
+            console.log(userInfo)
+            console.log(userInfo.id)
             permissionResult = await permission(userInfo.id, 'ADD_TAG');
+            console.log(11,permissionResult)
             break;
         case "/delete":
             permissionResult = await permission(userInfo.id, 'DELETE_TAG');
@@ -26,7 +30,7 @@ router.use(async (req, res, next) => {
             permissionResult = await permission(userInfo.id, 'UPDATE_TAG');
             break;
     }
-    if (permissionResult && permissionResult.code == 403) {
+    if (permissionResult && permissionResult.code != 200) {
         next(permissionResult)
     } else {
         next()
@@ -192,9 +196,11 @@ router.put('/update', async function (req, res, next) {
 router.post('/add', async function (req, res, next) {
     let row = { ...req.body }
     delete row.id
+    console.log(row)
     const result = await Tag.create({
         ...row
     })
+    // res.status(200).json({ code: 200, message: '新增标签成功！' })
     res.status(200).json({ code: 200, result, message: '新增标签成功！' })
 })
 

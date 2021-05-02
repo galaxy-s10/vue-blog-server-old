@@ -29,7 +29,7 @@ router.use(async (req, res, next) => {
             permissionResult = await permission(userInfo.id, 'UPDATE_ARTICLE');
             break;
     }
-    if (permissionResult && permissionResult.code == 403) {
+    if (permissionResult && permissionResult.code != 200) {
         next(permissionResult)
     } else {
         next()

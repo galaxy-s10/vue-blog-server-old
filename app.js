@@ -52,7 +52,7 @@ let type_router = require('./routers/type_router')
 let email_router = require('./routers/email_router')
 
 app.use('/', async (req, res, next) => {
-  console.log('**********全局监听开始**********');
+  console.log(`**********全局监听${req.path}开始**********`);
   if (req.path == '/qiniu/callback' || req.path == '/log/getPosition') {
 
     next()
@@ -73,7 +73,7 @@ app.use('/', async (req, res, next) => {
         await addLog(jwtResult.userInfo.id, req)
       }
       userInfo.id = jwtResult.userInfo && jwtResult.userInfo.id
-      console.log('**********全局监听完成2**********');
+      console.log(`**********全局监听${req.path}结束**********`);
       return next()
     }
   }
