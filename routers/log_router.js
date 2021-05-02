@@ -75,7 +75,8 @@ router.get('/getPosition', async function (req, res) {
         return
     }
     request({
-        url: `http://hcapi01.market.alicloudapi.com/ip?ip=${req.headers['x-real-ip']}`,
+        // url: `http://hcapi01.market.alicloudapi.com/ip?ip=${req.headers['x-real-ip']}`,//杭州节点
+        url: `https://hcapi20.market.alicloudapi.com/ip?ip=${req.headers['x-real-ip']}`,    //香港节点
         method: 'GET',
         headers: { 'Content-Type': 'text/json', 'Authorization': `APPCODE ${hcapi01_APPCODE}` }
     }, async function (error, response, body) {
