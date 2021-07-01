@@ -148,6 +148,13 @@ router.get("/pageList", async function (req, res) {
 });
 
 // qq登录
+/**
+ * todo
+ * 之前zhengbeining.com域名过期了，现在换成hsslive.cn后，
+ * 导致了一个问题，同一个用户，之前在zhengbeining.com使用qq登录过的用户，
+ * 现在在hsslive.cn登录，它们的platform_openid是不一样的，就会导致这两个
+ * 用户明明是同一个用户，却被区分成了两个不一样的用户。
+ */
 router.get("/qqlogin", async function (req, res, next) {
   const { code, state } = req.query;
   const params = {};
