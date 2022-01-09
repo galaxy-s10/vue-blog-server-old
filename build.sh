@@ -17,5 +17,5 @@ echo 当前npm镜像:
 npm get registry
 echo 全局安装pm2:
 npm install pm2 -g
-echo pm2维护：
-pm2 start app.js --name 'node3003'
+# echo pm2维护：
+# pm2 start app.js --name 'node3003'
