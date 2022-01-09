@@ -1,23 +1,28 @@
-const Sequelize = require('sequelize')
-const config = require('./config')
-const sequelize = new Sequelize(config.database, config.username, config.password, {
+const Sequelize = require('sequelize');
+const config = require('./config');
+const sequelize = new Sequelize(
+  config.database,
+  config.username,
+  config.password,
+  {
     host: config.host,
     dialect: 'mysql',
     pool: {
-        max: 5,
-        min: 0,
-        acquire: 30000,
-        idle: 10000
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000,
     },
-    timezone: '+08:00'
-})
+    timezone: '+08:00',
+  }
+);
 
 sequelize
-    .authenticate()
-    .then(() => {
-        console.log('Connection has been established successfully.')
-    })
-    .catch(err => {
-        console.error('Unable to connect to the database:', err)
-    })
-module.exports = sequelize
+  .authenticate()
+  .then(() => {
+    console.log('连接数据库成功！');
+  })
+  .catch((err) => {
+    console.error('连接数据库失败', err);
+  });
+module.exports = sequelize;
