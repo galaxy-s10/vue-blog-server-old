@@ -1,11 +1,12 @@
 const Sequelize = require('sequelize');
-const config = require('./config');
+const { mysqlConfig } = require('./secret');
+
 const sequelize = new Sequelize(
-  config.database,
-  config.username,
-  config.password,
+  mysqlConfig.database,
+  mysqlConfig.username,
+  mysqlConfig.password,
   {
-    host: config.host,
+    host: mysqlConfig.host,
     dialect: 'mysql',
     pool: {
       max: 5,

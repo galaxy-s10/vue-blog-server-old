@@ -1,4 +1,7 @@
 node_modules
-config/config.js
 config/secret.js
+.vscode
 .DS_Store
+*/.DS_Store
+yarn.lock
+package-lock.json
